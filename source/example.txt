@@ -1,0 +1,74 @@
+package main
+
+import rl "vendor:raylib"
+import "core:math/rand"
+
+Tile :: struct {
+  rec: rl.Rectangle,
+  industry: Industry,
+}
+
+Industry_Type :: enum {
+  Unclaimed,
+  Empty,
+  Wheat,
+  Cow,
+  Chicken,
+}
+
+Industry :: struct {
+  type: Industry_Type,
+  src: rl.Rectangle,
+}
+
+ind_arr := [5]Industry {
+  {.Unclaimed, {0, 0, 144, 144}},
+  {.Empty, {144, 0, 144, 144}},
+  {.Wheat, {288, 0, 144, 144}},
+  {.Cow, {0, 144, 144, 144}},
+  {.Chicken, {144, 144, 144, 144}},
+}
+
+init_tile_arr :: proc(tile_arr: ^[27]Tile) {
+  pos_arr := [27]rl.Vector2{
+    {0, 15}, {144, 15}, {288, 15}, {432, 15}, {576, 15}, // Row 1
+    {72, 124}, {216, 124}, {360, 124}, {504, 124}, // Row 2
+    {0, 233}, {144, 233}, {288, 233}, {432, 233}, {576, 233}, // Row 3
+    {72, 342}, {216, 342}, {360, 342}, {504, 342}, // Row 4
+    {0, 451}, {144, 451}, {288, 451}, {432, 451}, {576, 451}, // Row 5
+    {72, 560}, {216, 560}, {360, 560}, {504, 560}, // Row 6
+  }
+
+  for i := 0; i < 27; i += 1 {
+    tile_arr[i].rec = {pos_arr[i].x, pos_arr[i].y, 144, 144}
+
+    if i < 14 {
+      tile_arr[i].industry = ind_arr[0]
+    } else {
+      tile_arr[i].industry = ind_arr[1]
+    }
+  }
+}
+
+main :: proc() {
+  rl.InitWindow(720, 720, "test")
+  defer rl.CloseWindow()
+
+  spritesheet := rl.LoadTexture("farm_spritesheet.png")
+  defer rl.UnloadTexture(spritesheet)
+
+  tile_arr: [27]Tile
+  
+  init_tile_arr(&tile_arr)
+
+  for !rl.WindowShouldClose() {
+    rl.BeginDrawing()
+    rl.ClearBackground(rl.Color({70, 130, 50, 255}))
+
+    for tile in tile_arr {
+      rl.DrawTexturePro(spritesheet, tile.industry.src, tile.rec, {0, 0}, 0, rl.WHITE)
+    }
+
+    rl.EndDrawing()
+  } 
+}
