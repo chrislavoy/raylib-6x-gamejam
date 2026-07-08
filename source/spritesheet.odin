@@ -19,8 +19,8 @@ get_spritesheet_recs :: proc() -> [SPRITE_COUNT]Spritesheet_Reference {
 	}
 }
 
-get_initial_tile_positions :: proc() -> [27]rl.Vector2 {
-	return [27]rl.Vector2 {
+get_initial_tile_positions :: proc() -> [27]rl.Rectangle {
+	return [27]rl.Rectangle {
 		{0, 15, 144, 144},
 		{144, 15, 144, 144},
 		{288, 15, 144, 144},
