@@ -210,7 +210,24 @@ update :: proc() {
 		}
 	}
 
-	update_dropdown(mousepoint)
+	// update_dropdown(mousepoint)
+	if game.dropdown.show {
+		for &button in game.dropdown.buttons {
+			if rl.CheckCollisionPointRec(mousepoint, button.rec) &&
+			   button.state != .Disabled {
+				if rl.IsMouseButtonPressed(.LEFT) {
+					change_tile_industry(game.dropdown.tile_id, button.type)
+					hide_dropdown()
+				}
+			}
+		}
+
+		if rl.IsMouseButtonPressed(.LEFT) {
+			if !rl.CheckCollisionPointRec(mousepoint, game.dropdown.rec) {
+				hide_dropdown()
+			}
+		}
+	}
 }
 
 draw :: proc() {
@@ -386,24 +403,4 @@ show_dropdown :: proc(point: rl.Vector2, tile_id: int) {
 
 hide_dropdown :: proc() {
 	game.dropdown.show = false
-}
-
-update_dropdown :: proc(mousepoint: rl.Vector2) {
-	if game.dropdown.show {
-		for &button in game.dropdown.buttons {
-			if rl.CheckCollisionPointRec(mousepoint, button.rec) &&
-			   button.state != .Disabled {
-				if rl.IsMouseButtonPressed(.LEFT) {
-					change_tile_industry(game.dropdown.tile_id, button.type)
-					hide_dropdown()
-				}
-			}
-		}
-
-		if rl.IsMouseButtonPressed(.LEFT) {
-			if !rl.CheckCollisionPointRec(mousepoint, game.dropdown.rec) {
-				hide_dropdown()
-			}
-		}
-	}
 }
