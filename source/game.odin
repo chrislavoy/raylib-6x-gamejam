@@ -34,7 +34,7 @@ Game :: struct {
 	milk_count:  u32,
 	egg_count:   u32,
 	spritesheet: rl.Texture,
-	tile_arr:    [27]Tile,
+	tile_arr:    [22]Tile,
 	ind_arr:     [5]Industry,
 	dropdown:    Dropwdown,
 	money:       u32,
@@ -72,36 +72,8 @@ Dropwdown :: struct {
 
 game: Game
 
-init_tile_arr :: proc(tile_arr: ^[27]Tile) {
-	pos_arr := [27]rl.Vector2 {
-		{0, 15},
-		{144, 15},
-		{288, 15},
-		{432, 15},
-		{576, 15}, // Row 1
-		{72, 124},
-		{216, 124},
-		{360, 124},
-		{504, 124}, // Row 2
-		{0, 233},
-		{144, 233},
-		{288, 233},
-		{432, 233},
-		{576, 233}, // Row 3
-		{72, 342},
-		{216, 342},
-		{360, 342},
-		{504, 342}, // Row 4
-		{0, 451},
-		{144, 451},
-		{288, 451},
-		{432, 451},
-		{576, 451}, // Row 5
-		{72, 560},
-		{216, 560},
-		{360, 560},
-		{504, 560}, // Row 6;
-	}
+init_tile_arr :: proc(tile_arr: ^[22]Tile) {
+	pos_arr := get_initial_tile_positions()
 
 	collider_points: [8]rl.Vector2 = {
 		{0, 35},
@@ -114,35 +86,38 @@ init_tile_arr :: proc(tile_arr: ^[27]Tile) {
 		{0, 108},
 	}
 
-	for i := 0; i < 27; i += 1 {
+	for i := 0; i < len(tile_arr); i += 1 {
 		tile_arr[i].id = i
-		tile_arr[i].rec = {pos_arr[i].x, pos_arr[i].y, 144, 144}
+		tile_arr[i].rec = pos_arr[i]
 		tile_arr[i].tint = rl.WHITE
 
-		for j := 0; j < 8; j += 1 {
+		for j := 0; j < len(collider_points); j += 1 {
 			tile_arr[i].collider[j] =
 				{pos_arr[i].x, pos_arr[i].y} + collider_points[j]
 		}
 
-		if i < 14 {
+		if i < 9 {
 			tile_arr[i].industry = game.ind_arr[0]
-		} else if i >= 14 && i < 18 {
-			tile_arr[i].industry = game.ind_arr[2]
-		} else if i >= 18 && i < 22 {
-			tile_arr[i].industry = game.ind_arr[3]
 		} else {
-			tile_arr[i].industry = game.ind_arr[4]
+			tile_arr[i].industry = game.ind_arr[1]
 		}
+		// } else if i >= 14 && i < 18 {
+		// 	tile_arr[i].industry = game.ind_arr[2]
+		// } else if i >= 18 && i < 22 {
+		// 	tile_arr[i].industry = game.ind_arr[3]
+		// } else {
+		// 	tile_arr[i].industry = game.ind_arr[4]
+		// }
 	}
 }
 
-get_initial_tile_positions :: proc() -> [27]rl.Rectangle {
-	return [27]rl.Rectangle {
-		{0, 15, 144, 144},
-		{144, 15, 144, 144},
-		{288, 15, 144, 144},
-		{432, 15, 144, 144},
-		{576, 15, 144, 144}, // Row 1
+get_initial_tile_positions :: proc() -> [22]rl.Rectangle {
+	return [22]rl.Rectangle {
+		// {0, 15, 144, 144},
+		// {144, 15, 144, 144},
+		// {288, 15, 144, 144},
+		// {432, 15, 144, 144},
+		// {576, 15, 144, 144}, // Row 1
 		{72, 124, 144, 144},
 		{216, 124, 144, 144},
 		{360, 124, 144, 144},
@@ -210,7 +185,6 @@ update :: proc() {
 		}
 	}
 
-	// update_dropdown(mousepoint)
 	if game.dropdown.show {
 		for &button in game.dropdown.buttons {
 			if rl.CheckCollisionPointRec(mousepoint, button.rec) &&
@@ -249,7 +223,6 @@ draw :: proc() {
 		rl.DrawRectangleRec(game.dropdown.rec, rl.RAYWHITE)
 
 		for button in game.dropdown.buttons {
-			// for i := 0; i < len(game.dropdown.buttons); i += 1 {
 			rl.DrawRectangleRec(button.rec, button.tint)
 			rl.DrawText(
 				button.text,
@@ -330,7 +303,7 @@ game_init :: proc() {
 
 @(export)
 game_init_window :: proc() {
-	rl.InitWindow(720, 720, "test")
+	rl.InitWindow(720, 720, "Farm Game")
 	rl.InitAudioDevice() // Initialize Audio Device
 }
 
@@ -351,6 +324,7 @@ game_shutdown_window :: proc() {
 }
 
 @(export)
+// for i := 0; i < len(game.dropdown.buttons); i += 1 {
 game_force_reload :: proc() -> bool {
 	return rl.IsKeyPressed(.F5)
 }
