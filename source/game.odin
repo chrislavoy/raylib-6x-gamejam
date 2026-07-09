@@ -2,67 +2,35 @@ package game
 
 import rl "vendor:raylib"
 
-//Enum
-Plot_Type :: enum {
-	Empty = 0,
-	Wheat = 1,
-	Cow = 2,
-	Chicken =3,
-} 
-
-Product_Type :: enum {
-	Empty = 0,
-	Wheat = 1,
-	Cow = 2,
-	Chicken = 3,
+Industry_Type :: enum {
+	Unclaimed,
+	Empty,
+	Wheat,
+	Cow,
+	Chicken,
 }
 
-Industry_Type :: enum {
-  Unclaimed,
-  Empty,
-  Wheat,
-  Cow,
-  Chicken,
+Count :: struct {
+	wheat_count: int,
+	milk_count:  int,
+	egg_count:   int,
+}
+
+count: Count
+
+Industry :: struct {
+	type:        Industry_Type,
+	src:         rl.Rectangle,
+	growth_rate: f32,
+	max_growth:  f32,
+	growth:      f32,
+	produced:    int,
 }
 
 Tile :: struct {
-  rec: rl.Rectangle,
-  industry: Industry,
-}
-
-Industry :: struct {
-  type: Industry_Type,
-  src: rl.Rectangle,
-}
-
-//Structs
-Farm_Plot :: struct {
-	x: f32,
-	y: f32,
-	radius: f32,
-	Plot_Type: Plot_Type, 
-	Product_Type: Product_Type,
-	Growth_Speed: f32,
-}
-
-	//Buys products from farmhouse
-Buy_Crop_Button :: struct {
-
-}
-
-	//Collects from plot
-Collect_From_Plot :: struct {
-
-}
-
-	//Select product in warehouse
-Select_Product :: struct {
-
-}
-
-	//Sells products from warehouse
-Sell_Crop_Button :: struct {
-
+	rec:      rl.Rectangle,
+	industry: Industry,
+	hovered: bool,
 }
 
 SPRITE_COUNT :: 5
@@ -72,33 +40,62 @@ Spritesheet_Reference :: struct {
 	rec:  rl.Rectangle,
 }
 
+spritesheet: rl.Texture
+
+tile_arr: [27]Tile
+
 ind_arr := [5]Industry {
-  {.Unclaimed, {0, 0, 144, 144}},
-  {.Empty, {144, 0, 144, 144}},
-  {.Wheat, {288, 0, 144, 144}},
-  {.Cow, {0, 144, 144, 144}},
-  {.Chicken, {144, 144, 144, 144}},
+	{.Unclaimed, {0, 0, 144, 144}, 0, 0, 0, 0},
+	{.Empty, {144, 0, 144, 144}, 0, 0, 0, 0},
+	{.Wheat, {288, 0, 144, 144}, 1, 5, 0, 1},
+	{.Cow, {0, 144, 144, 144}, 1, 10, 0, 1},
+	{.Chicken, {144, 144, 144, 144}, 1, 10, 0, 3},
 }
 
 init_tile_arr :: proc(tile_arr: ^[27]Tile) {
-  pos_arr := [27]rl.Vector2{
-    {0, 15}, {144, 15}, {288, 15}, {432, 15}, {576, 15}, // Row 1
-    {72, 124}, {216, 124}, {360, 124}, {504, 124}, // Row 2
-    {0, 233}, {144, 233}, {288, 233}, {432, 233}, {576, 233}, // Row 3
-    {72, 342}, {216, 342}, {360, 342}, {504, 342}, // Row 4
-    {0, 451}, {144, 451}, {288, 451}, {432, 451}, {576, 451}, // Row 5
-    {72, 560}, {216, 560}, {360, 560}, {504, 560}, // Row 6
-  }
+	pos_arr := [27]rl.Vector2 {
+		{0, 15},
+		{144, 15},
+		{288, 15},
+		{432, 15},
+		{576, 15}, // Row 1
+		{72, 124},
+		{216, 124},
+		{360, 124},
+		{504, 124}, // Row 2
+		{0, 233},
+		{144, 233},
+		{288, 233},
+		{432, 233},
+		{576, 233}, // Row 3
+		{72, 342},
+		{216, 342},
+		{360, 342},
+		{504, 342}, // Row 4
+		{0, 451},
+		{144, 451},
+		{288, 451},
+		{432, 451},
+		{576, 451}, // Row 5
+		{72, 560},
+		{216, 560},
+		{360, 560},
+		{504, 560}, // Row 6
+	}
 
-  for i := 0; i < 27; i += 1 {
-    tile_arr[i].rec = {pos_arr[i].x, pos_arr[i].y, 144, 144}
+	for i := 0; i < 27; i += 1 {
+		tile_arr[i].rec = {pos_arr[i].x, pos_arr[i].y, 144, 144}
 
-    if i < 14 {
-      tile_arr[i].industry = ind_arr[0]
-    } else {
-      tile_arr[i].industry = ind_arr[1]
-    }
-  }
+		if i < 14 {
+			tile_arr[i].industry = ind_arr[0]
+		} else if i >= 14 && i < 18 {
+			tile_arr[i].industry = ind_arr[2]
+		} else if i >= 18 && i < 22 {
+			tile_arr[i].industry = ind_arr[3]
+		} else {
+			tile_arr[i].industry = ind_arr[4]
+		}
+	}
 }
 
 get_spritesheet_recs :: proc() -> [SPRITE_COUNT]Spritesheet_Reference {
@@ -143,12 +140,61 @@ get_initial_tile_positions :: proc() -> [27]rl.Rectangle {
 	}
 }
 
- update :: proc() {
+update :: proc() {
+	
+	mousepoint := rl.GetMousePosition()
+
+	for &tile in tile_arr {
+		tile.hovered = rl.CheckCollisionPointRec(mousepoint, tile.rec)
+
+			if tile.industry.type != .Unclaimed && tile.industry.type != .Empty {
+				tile.industry.growth += tile.industry.growth_rate * rl.GetFrameTime()
+
+				if tile.industry.growth >= tile.industry.max_growth {
+					tile.industry.growth = 0
+
+					#partial switch tile.industry.type {
+					case .Wheat:
+						count.wheat_count += tile.industry.produced
+					case .Cow:
+						count.milk_count += tile.industry.produced
+					case .Chicken:
+						count.egg_count += tile.industry.produced
+					}
+				}
+			}	
+	}
 }
 
 draw :: proc() {
 	rl.BeginDrawing()
-	rl.ClearBackground(rl.BLACK)
+	rl.ClearBackground(rl.Color({70, 130, 50, 255}))
+
+	for tile in tile_arr {
+		
+		if tile.hovered {
+			rl.DrawTexturePro(
+			spritesheet,
+			tile.industry.src,
+			tile.rec,
+			{0, 0},
+			0,
+			rl.RED,
+		)
+		} else {
+			rl.DrawTexturePro(
+			spritesheet,
+			tile.industry.src,
+			tile.rec,
+			{0, 0},
+			0,
+			rl.WHITE,
+		)
+		}
+	}
+	rl.DrawText(rl.TextFormat("Wheat: %d", count.wheat_count), 10, 10, 20, rl.BLACK)
+	rl.DrawText(rl.TextFormat("Milk: %d", count.milk_count), 10, 40, 20, rl.BLACK)
+	rl.DrawText(rl.TextFormat("Eggs: %d", count.egg_count), 10, 70, 20, rl.BLACK)
 	rl.EndDrawing()
 }
 
@@ -160,40 +206,29 @@ game_update :: proc() {
 
 @(export)
 game_init :: proc() {
+	//rl.InitAudioDevice(); // Initialize Audio Device
+	// Button_Sound = rl.LoadSound(); // Button Sound
+	// Button_Texture = rl.LoadTexture(); // Button Texture
 	
+	init_tile_arr(&tile_arr)
+	spritesheet = rl.LoadTexture("assets\\farm_spritesheet.png")
 }
 
 @(export)
 game_init_window :: proc() {
 	rl.InitWindow(720, 720, "test")
 
-  spritesheet := rl.LoadTexture("assets\\farm_spritesheet.png")
-  defer rl.UnloadTexture(spritesheet)
-
-  tile_arr: [27]Tile
-  
-  init_tile_arr(&tile_arr)
-
-  for !rl.WindowShouldClose() {
-    rl.BeginDrawing()
-    rl.ClearBackground(rl.Color({70, 130, 50, 255}))
-
-    for tile in tile_arr {
-      rl.DrawTexturePro(spritesheet, tile.industry.src, tile.rec, {0, 0}, 0, rl.WHITE)
-    }
-
-    rl.EndDrawing()
-  } 
 }
 
- @(export)
- game_should_run :: proc() -> bool {
- 		return !rl.WindowShouldClose()
+@(export)
+game_should_run :: proc() -> bool {
+	return !rl.WindowShouldClose()
 }
 
- @(export)
- game_shutdown :: proc() {
- }
+@(export)
+game_shutdown :: proc() {
+	defer rl.UnloadTexture(spritesheet)
+}
 
 @(export)
 game_shutdown_window :: proc() {
@@ -213,4 +248,3 @@ game_force_restart :: proc() -> bool {
 game_parent_window_size_changed :: proc(w, h: int) {
 	rl.SetWindowSize(i32(w), i32(h))
 }
-
