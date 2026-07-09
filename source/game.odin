@@ -10,47 +10,67 @@ Industry_Type :: enum {
 	Chicken,
 }
 
-Count :: struct {
-	wheat_count: int,
-	milk_count:  int,
-	egg_count:   int,
-}
-
-count: Count
-
 Industry :: struct {
 	type:        Industry_Type,
 	src:         rl.Rectangle,
 	growth_rate: f32,
 	max_growth:  f32,
 	growth:      f32,
-	produced:    int,
+	produced:    u32,
+	cost:        u32,
 }
 
 Tile :: struct {
+	id:       int,
 	rec:      rl.Rectangle,
 	industry: Industry,
-	hovered: bool,
+	hovered:  bool,
+	collider: [8]rl.Vector2,
+	tint:     rl.Color,
 }
 
-SPRITE_COUNT :: 5
-
-Spritesheet_Reference :: struct {
-	name: string,
-	rec:  rl.Rectangle,
+Game :: struct {
+	wheat_count: u32,
+	milk_count:  u32,
+	egg_count:   u32,
+	spritesheet: rl.Texture,
+	tile_arr:    [27]Tile,
+	ind_arr:     [5]Industry,
+	dropdown:    Dropwdown,
+	money:       u32,
 }
 
-spritesheet: rl.Texture
-
-tile_arr: [27]Tile
-
-ind_arr := [5]Industry {
-	{.Unclaimed, {0, 0, 144, 144}, 0, 0, 0, 0},
-	{.Empty, {144, 0, 144, 144}, 0, 0, 0, 0},
-	{.Wheat, {288, 0, 144, 144}, 1, 5, 0, 1},
-	{.Cow, {0, 144, 144, 144}, 1, 10, 0, 1},
-	{.Chicken, {144, 144, 144, 144}, 1, 10, 0, 3},
+Button_State :: enum {
+	Normal,
+	Hovered,
+	Clicked,
+	Disabled,
 }
+
+Button :: struct {
+	rec:   rl.Rectangle,
+	state: Button_State,
+	tint:  rl.Color,
+}
+
+Dropdown_Button :: struct {
+	rec:        rl.Rectangle,
+	state:      Button_State,
+	tint:       rl.Color,
+	text_color: rl.Color,
+	// interact: proc(i: int, ind_type: Industry_Type),
+	type:       Industry_Type,
+	text:       cstring,
+}
+
+Dropwdown :: struct {
+	rec:     rl.Rectangle,
+	buttons: [5]Dropdown_Button,
+	show:    bool,
+	tile_id: int,
+}
+
+game: Game
 
 init_tile_arr :: proc(tile_arr: ^[27]Tile) {
 	pos_arr := [27]rl.Vector2 {
@@ -80,31 +100,39 @@ init_tile_arr :: proc(tile_arr: ^[27]Tile) {
 		{72, 560},
 		{216, 560},
 		{360, 560},
-		{504, 560}, // Row 6
+		{504, 560}, // Row 6;
+	}
+
+	collider_points: [8]rl.Vector2 = {
+		{0, 35},
+		{70, 0},
+		{73, 0},
+		{143, 35},
+		{143, 108},
+		{73, 143},
+		{70, 143},
+		{0, 108},
 	}
 
 	for i := 0; i < 27; i += 1 {
+		tile_arr[i].id = i
 		tile_arr[i].rec = {pos_arr[i].x, pos_arr[i].y, 144, 144}
+		tile_arr[i].tint = rl.WHITE
+
+		for j := 0; j < 8; j += 1 {
+			tile_arr[i].collider[j] =
+				{pos_arr[i].x, pos_arr[i].y} + collider_points[j]
+		}
 
 		if i < 14 {
-			tile_arr[i].industry = ind_arr[0]
+			tile_arr[i].industry = game.ind_arr[0]
 		} else if i >= 14 && i < 18 {
-			tile_arr[i].industry = ind_arr[2]
+			tile_arr[i].industry = game.ind_arr[2]
 		} else if i >= 18 && i < 22 {
-			tile_arr[i].industry = ind_arr[3]
+			tile_arr[i].industry = game.ind_arr[3]
 		} else {
-			tile_arr[i].industry = ind_arr[4]
+			tile_arr[i].industry = game.ind_arr[4]
 		}
-	}
-}
-
-get_spritesheet_recs :: proc() -> [SPRITE_COUNT]Spritesheet_Reference {
-	return [SPRITE_COUNT]Spritesheet_Reference {
-		{"Unclaimed", {0, 0, 144, 144}},
-		{"Empty", {144, 0, 144, 144}},
-		{"Wheat", {288, 0, 144, 144}},
-		{"Cows", {0, 144, 144, 144}},
-		{"Chickens", {144, 144, 144, 144}},
 	}
 }
 
@@ -141,60 +169,104 @@ get_initial_tile_positions :: proc() -> [27]rl.Rectangle {
 }
 
 update :: proc() {
-	
 	mousepoint := rl.GetMousePosition()
 
-	for &tile in tile_arr {
-		tile.hovered = rl.CheckCollisionPointRec(mousepoint, tile.rec)
+	for &tile in game.tile_arr {
+		if !game.dropdown.show {
+			if rl.CheckCollisionPointPoly(
+				mousepoint,
+				raw_data(&tile.collider),
+				8,
+			) {
+				tile.hovered = true
+				tile.tint = rl.RED
 
-			if tile.industry.type != .Unclaimed && tile.industry.type != .Empty {
-				tile.industry.growth += tile.industry.growth_rate * rl.GetFrameTime()
-
-				if tile.industry.growth >= tile.industry.max_growth {
-					tile.industry.growth = 0
-
-					#partial switch tile.industry.type {
-					case .Wheat:
-						count.wheat_count += tile.industry.produced
-					case .Cow:
-						count.milk_count += tile.industry.produced
-					case .Chicken:
-						count.egg_count += tile.industry.produced
-					}
+				if rl.IsMouseButtonPressed(.LEFT) {
+					show_dropdown(mousepoint, tile.id)
 				}
-			}	
+
+			} else {
+				tile.hovered = false
+				tile.tint = rl.WHITE
+			}
+		}
+
+		if tile.industry.type != .Unclaimed && tile.industry.type != .Empty {
+			tile.industry.growth +=
+				tile.industry.growth_rate * rl.GetFrameTime()
+
+			if tile.industry.growth >= tile.industry.max_growth {
+				tile.industry.growth = 0
+
+				#partial switch tile.industry.type {
+				case .Wheat:
+					game.wheat_count += tile.industry.produced
+				case .Cow:
+					game.milk_count += tile.industry.produced
+				case .Chicken:
+					game.egg_count += tile.industry.produced
+				}
+			}
+		}
 	}
+
+	update_dropdown(mousepoint)
 }
 
 draw :: proc() {
 	rl.BeginDrawing()
 	rl.ClearBackground(rl.Color({70, 130, 50, 255}))
 
-	for tile in tile_arr {
-		
-		if tile.hovered {
-			rl.DrawTexturePro(
-			spritesheet,
+	for tile in game.tile_arr {
+		rl.DrawTexturePro(
+			game.spritesheet,
 			tile.industry.src,
 			tile.rec,
 			{0, 0},
 			0,
-			rl.RED,
+			tile.tint,
 		)
-		} else {
-			rl.DrawTexturePro(
-			spritesheet,
-			tile.industry.src,
-			tile.rec,
-			{0, 0},
-			0,
-			rl.WHITE,
-		)
+	}
+
+	if game.dropdown.show {
+		rl.DrawRectangleRec(game.dropdown.rec, rl.RAYWHITE)
+
+		for button in game.dropdown.buttons {
+			// for i := 0; i < len(game.dropdown.buttons); i += 1 {
+			rl.DrawRectangleRec(button.rec, button.tint)
+			rl.DrawText(
+				button.text,
+				cast(i32)button.rec.x,
+				cast(i32)button.rec.y,
+				20,
+				button.text_color,
+			)
 		}
 	}
-	rl.DrawText(rl.TextFormat("Wheat: %d", count.wheat_count), 10, 10, 20, rl.BLACK)
-	rl.DrawText(rl.TextFormat("Milk: %d", count.milk_count), 10, 40, 20, rl.BLACK)
-	rl.DrawText(rl.TextFormat("Eggs: %d", count.egg_count), 10, 70, 20, rl.BLACK)
+
+	rl.DrawText(
+		rl.TextFormat("Wheat: %d", game.wheat_count),
+		10,
+		10,
+		20,
+		rl.BLACK,
+	)
+	rl.DrawText(
+		rl.TextFormat("Milk: %d", game.milk_count),
+		10,
+		40,
+		20,
+		rl.BLACK,
+	)
+	rl.DrawText(
+		rl.TextFormat("Eggs: %d", game.egg_count),
+		10,
+		70,
+		20,
+		rl.BLACK,
+	)
+
+	rl.DrawText(rl.TextFormat("Money: %d", game.money), 10, 100, 20, rl.BLACK)
 	rl.EndDrawing()
 }
 
@@ -206,18 +278,43 @@ game_update :: proc() {
 
 @(export)
 game_init :: proc() {
-	//rl.InitAudioDevice(); // Initialize Audio Device
-	// Button_Sound = rl.LoadSound(); // Button Sound
-	// Button_Texture = rl.LoadTexture(); // Button Texture
-	
-	init_tile_arr(&tile_arr)
-	spritesheet = rl.LoadTexture("assets\\farm_spritesheet.png")
+	// Button_Sound = rl.LoadSound() // Button Sound
+	// Button_Texture = rl.LoadTexture() // Button Texture
+
+	game.ind_arr = [5]Industry {
+		{.Unclaimed, {0, 0, 144, 144}, 0, 0, 0, 0, 0},
+		{.Empty, {144, 0, 144, 144}, 0, 0, 0, 0, 0},
+		{.Wheat, {288, 0, 144, 144}, 1, 5, 0, 1, 5},
+		{.Cow, {0, 144, 144, 144}, 1, 10, 0, 1, 15},
+		{.Chicken, {144, 144, 144, 144}, 1, 10, 0, 3, 10},
+	}
+
+	game.money = 10
+	game.dropdown.show = false
+	game.dropdown.rec = {0, 0, 150, 255}
+	game.dropdown.buttons = {
+		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Wheat, "Wheat"},
+		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Cow, "Cow"},
+		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Chicken, "Chicken"},
+		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Empty, "Empty"},
+		{
+			{0, 0, 0, 0},
+			.Normal,
+			rl.LIGHTGRAY,
+			rl.BLACK,
+			.Unclaimed,
+			"Unclaimed",
+		},
+	}
+
+	init_tile_arr(&game.tile_arr)
+	game.spritesheet = rl.LoadTexture("assets\\farm_spritesheet.png")
 }
 
 @(export)
 game_init_window :: proc() {
 	rl.InitWindow(720, 720, "test")
-
+	rl.InitAudioDevice() // Initialize Audio Device
 }
 
 @(export)
@@ -227,11 +324,12 @@ game_should_run :: proc() -> bool {
 
 @(export)
 game_shutdown :: proc() {
-	defer rl.UnloadTexture(spritesheet)
+	defer rl.UnloadTexture(game.spritesheet)
 }
 
 @(export)
 game_shutdown_window :: proc() {
+	rl.CloseAudioDevice()
 	rl.CloseWindow()
 }
 
@@ -247,4 +345,65 @@ game_force_restart :: proc() -> bool {
 
 game_parent_window_size_changed :: proc(w, h: int) {
 	rl.SetWindowSize(i32(w), i32(h))
+}
+
+text_color: rl.Color
+change_tile_industry :: proc(i: int, ind_type: Industry_Type) {
+	game.money -= game.ind_arr[ind_type].cost
+	game.tile_arr[i].industry = game.ind_arr[ind_type]
+}
+
+show_dropdown :: proc(point: rl.Vector2, tile_id: int) {
+	game.dropdown.show = true
+	game.dropdown.tile_id = tile_id
+	game.dropdown.rec.x = point.x
+	game.dropdown.rec.y = point.y
+
+	if game.dropdown.rec.x + game.dropdown.rec.width > 720 {
+		game.dropdown.rec.x = 720 - game.dropdown.rec.width
+	}
+
+	if game.dropdown.rec.y + game.dropdown.rec.height > 720 {
+		game.dropdown.rec.y = 720 - game.dropdown.rec.height
+	}
+
+	for i := 0; i < len(game.dropdown.buttons); i += 1 {
+		game.dropdown.buttons[i].rec = {
+			game.dropdown.rec.x + 5,
+			game.dropdown.rec.y + (50 * cast(f32)i) + 5,
+			game.dropdown.rec.width - 10,
+			45,
+		}
+		if game.money >= game.ind_arr[game.dropdown.buttons[i].type].cost {
+			game.dropdown.buttons[i].state = .Normal
+			game.dropdown.buttons[i].text_color = rl.BLACK
+		} else {
+			game.dropdown.buttons[i].state = .Disabled
+			game.dropdown.buttons[i].text_color = rl.GRAY
+		}
+	}
+}
+
+hide_dropdown :: proc() {
+	game.dropdown.show = false
+}
+
+update_dropdown :: proc(mousepoint: rl.Vector2) {
+	if game.dropdown.show {
+		for &button in game.dropdown.buttons {
+			if rl.CheckCollisionPointRec(mousepoint, button.rec) &&
+			   button.state != .Disabled {
+				if rl.IsMouseButtonPressed(.LEFT) {
+					change_tile_industry(game.dropdown.tile_id, button.type)
+					hide_dropdown()
+				}
+			}
+		}
+
+		if rl.IsMouseButtonPressed(.LEFT) {
+			if !rl.CheckCollisionPointRec(mousepoint, game.dropdown.rec) {
+				hide_dropdown()
+			}
+		}
+	}
 }
