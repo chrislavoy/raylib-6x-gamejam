@@ -33,6 +33,9 @@ Game :: struct {
 	wheat_count: u32,
 	milk_count:  u32,
 	egg_count:   u32,
+	wheat_button: Button,
+	milk_button: Button,
+	egg_button: Button,
 	spritesheet: rl.Texture,
 	tile_arr:    [22]Tile,
 	ind_arr:     [5]Industry,
@@ -146,6 +149,21 @@ get_initial_tile_positions :: proc() -> [22]rl.Rectangle {
 update :: proc() {
 	mousepoint := rl.GetMousePosition()
 
+	if rl.IsMouseButtonPressed(.LEFT) {
+		if rl.CheckCollisionPointRec(mousepoint, game.wheat_button.rec) && game.wheat_count > 0 {
+			game.wheat_count -= 1
+			game.money += 2
+		}
+		if rl.CheckCollisionPointRec(mousepoint, game.milk_button.rec) && game.milk_count > 0 {
+			game.milk_count -= 1
+			game.money += 3
+		}
+		if rl.CheckCollisionPointRec(mousepoint, game.egg_button.rec) && game.egg_count > 0 {
+			game.egg_count -= 1
+			game.money += 1
+		}
+	}
+
 	for &tile in game.tile_arr {
 		if !game.dropdown.show {
 			if rl.CheckCollisionPointPoly(
@@ -204,9 +222,17 @@ update :: proc() {
 	}
 }
 
+
 draw :: proc() {
 	rl.BeginDrawing()
 	rl.ClearBackground(rl.Color({70, 130, 50, 255}))
+	rl.DrawRectangle(0, 0, 720, 115, rl.DARKBROWN)
+	rl.DrawRectangleRec(game.wheat_button.rec, rl.BROWN)
+	rl.DrawText("Sell Wheat", 160, 5, 20, rl.BLACK)
+	rl.DrawRectangleRec(game.egg_button.rec, rl.BROWN)
+	rl.DrawText("Sell Eggs", 160, 35, 20, rl.BLACK)
+	rl.DrawRectangleRec(game.milk_button.rec, rl.BROWN)
+	rl.DrawText("Sell Milk", 160, 65, 20, rl.BLACK)
 
 	for tile in game.tile_arr {
 		rl.DrawTexturePro(
@@ -237,26 +263,26 @@ draw :: proc() {
 	rl.DrawText(
 		rl.TextFormat("Wheat: %d", game.wheat_count),
 		10,
-		10,
-		20,
-		rl.BLACK,
-	)
-	rl.DrawText(
-		rl.TextFormat("Milk: %d", game.milk_count),
-		10,
-		40,
+		5,
 		20,
 		rl.BLACK,
 	)
 	rl.DrawText(
 		rl.TextFormat("Eggs: %d", game.egg_count),
 		10,
-		70,
+		35,
+		20,
+		rl.BLACK,
+	)
+	rl.DrawText(
+		rl.TextFormat("Milk: %d", game.milk_count),
+		10,
+		65,
 		20,
 		rl.BLACK,
 	)
 
-	rl.DrawText(rl.TextFormat("Money: %d", game.money), 10, 100, 20, rl.BLACK)
+	rl.DrawText(rl.TextFormat("Money: %d", game.money), 10, 95, 20, rl.BLACK)
 	rl.EndDrawing()
 }
 
@@ -270,22 +296,28 @@ game_update :: proc() {
 game_init :: proc() {
 	// Button_Sound = rl.LoadSound() // Button Sound
 	// Button_Texture = rl.LoadTexture() // Button Texture
+	game.wheat_button.rec = {150, 5, 60, 20}
+	game.wheat_button.tint = rl.BROWN
+	game.egg_button.rec = {150, 35, 60, 20}
+	game.egg_button.tint = rl.BROWN
+	game.milk_button.rec = {150, 65, 60, 20}
+	game.milk_button.tint = rl.BROWN
 
 	game.ind_arr = [5]Industry {
 		{.Unclaimed, {0, 0, 144, 144}, 0, 0, 0, 0, 0},
 		{.Empty, {144, 0, 144, 144}, 0, 0, 0, 0, 0},
-		{.Wheat, {288, 0, 144, 144}, 1, 5, 0, 1, 5},
-		{.Cow, {0, 144, 144, 144}, 1, 10, 0, 1, 15},
-		{.Chicken, {144, 144, 144, 144}, 1, 10, 0, 3, 10},
+		{.Wheat, {288, 0, 144, 144}, 1, 20, 0, 1, 5},
+		{.Cow, {0, 144, 144, 144}, 1, 40, 0, 1, 15},
+		{.Chicken, {144, 144, 144, 144}, 1, 30, 0, 3, 10},
 	}
 
-	game.money = 10
+	game.money = 5
 	game.dropdown.show = false
 	game.dropdown.rec = {0, 0, 150, 255}
 	game.dropdown.buttons = {
-		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Wheat, "Wheat"},
-		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Cow, "Cow"},
-		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Chicken, "Chicken"},
+		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Wheat, "Wheat 5"},
+		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Chicken, "Chicken 10"},
+		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Cow, "Cow 15"},
 		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Empty, "Empty"},
 		{
 			{0, 0, 0, 0},
