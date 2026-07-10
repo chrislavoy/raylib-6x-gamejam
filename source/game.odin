@@ -41,6 +41,7 @@ Game :: struct {
 	ind_arr:     [5]Industry,
 	dropdown:    Dropwdown,
 	money:       u32,
+	dropdown_just_opened: bool,
 }
 
 Button_State :: enum {
@@ -204,6 +205,10 @@ update :: proc() {
 	}
 
 	if game.dropdown.show {
+
+		if game.dropdown_just_opened {
+			game.dropdown_just_opened = false
+		} else {
 		for &button in game.dropdown.buttons {
 			if rl.CheckCollisionPointRec(mousepoint, button.rec) &&
 			   button.state != .Disabled {
@@ -217,6 +222,7 @@ update :: proc() {
 		if rl.IsMouseButtonPressed(.LEFT) {
 			if !rl.CheckCollisionPointRec(mousepoint, game.dropdown.rec) {
 				hide_dropdown()
+				}
 			}
 		}
 	}
@@ -378,6 +384,7 @@ change_tile_industry :: proc(i: int, ind_type: Industry_Type) {
 
 show_dropdown :: proc(point: rl.Vector2, tile_id: int) {
 	game.dropdown.show = true
+	game.dropdown_just_opened = true
 	game.dropdown.tile_id = tile_id
 	game.dropdown.rec.x = point.x
 	game.dropdown.rec.y = point.y
