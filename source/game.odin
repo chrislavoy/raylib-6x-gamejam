@@ -177,7 +177,7 @@ update :: proc() {
 				8,
 			) {
 				tile.hovered = true
-				tile.tint = rl.RED
+				//tile.tint = rl.RED
 
 				if rl.IsMouseButtonPressed(.LEFT) {
 					show_dropdown(mousepoint, tile.id)
@@ -185,7 +185,7 @@ update :: proc() {
 
 			} else {
 				tile.hovered = false
-				tile.tint = rl.WHITE
+				//tile.tint = rl.WHITE
 			}
 		}
 
@@ -251,8 +251,21 @@ draw :: proc() {
 			tile.rec,
 			{0, 0},
 			0,
-			tile.tint,
+			rl.WHITE,
+			//tile.tint,
 		)
+
+		if tile.hovered {
+			for i := 0; i < 8; i += 1 {
+				next := (i + 1) % 8
+				rl.DrawLineEx(
+					tile.collider[i],
+					tile.collider[next],
+					3,
+					rl.WHITE,
+				)
+			}
+		}
 	}
 
 	if game.dropdown.show {
