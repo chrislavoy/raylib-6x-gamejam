@@ -61,6 +61,7 @@ Button_State :: enum {
 
 Button :: struct {
 	rec:   rl.Rectangle,
+	src:   rl.Rectangle,
 	state: Button_State,
 	tint:  rl.Color,
 }
@@ -211,11 +212,35 @@ draw :: proc() {
 	rl.BeginDrawing()
 	rl.ClearBackground(rl.Color({70, 130, 50, 255}))
 	rl.DrawRectangle(0, 0, 720, 115, rl.BROWN)
-	rl.DrawRectangleRec(game.wheat_button.rec, rl.DARKBROWN)
+	// rl.DrawRectangleRec(game.wheat_button.rec, rl.DARKBROWN)
+	rl.DrawTexturePro(
+		game.spritesheet,
+		game.wheat_button.src,
+		game.wheat_button.rec,
+		{0, 0},
+		0,
+		game.wheat_button.tint,
+	)
 	//rl.DrawText("Sell Wheat", 160, 5, 20, rl.BLACK)
-	rl.DrawRectangleRec(game.egg_button.rec, rl.DARKBROWN)
+	// rl.DrawRectangleRec(game.egg_button.rec, rl.DARKBROWN)
+	rl.DrawTexturePro(
+		game.spritesheet,
+		game.egg_button.src,
+		game.egg_button.rec,
+		{0, 0},
+		0,
+		game.egg_button.tint,
+	)
 	//rl.DrawText("Sell Eggs", 160, 35, 20, rl.BLACK)
-	rl.DrawRectangleRec(game.milk_button.rec, rl.DARKBROWN)
+	// rl.DrawRectangleRec(game.milk_button.rec, rl.DARKBROWN)
+	rl.DrawTexturePro(
+		game.spritesheet,
+		game.milk_button.src,
+		game.milk_button.rec,
+		{0, 0},
+		0,
+		game.milk_button.tint,
+	)
 	//rl.DrawText("Sell Milk", 160, 65, 20, rl.BLACK)
 
 	for tile in game.tile_arr {
@@ -294,11 +319,14 @@ game_init :: proc() {
 	// Button_Sound = rl.LoadSound() // Button Sound
 	// Button_Texture = rl.LoadTexture() // Button Texture
 	game.wheat_button.rec = {150, 5, 32, 32}
-	game.wheat_button.tint = rl.BROWN
+	game.wheat_button.src = get_sprite_rec_by_name("SellWheat")
+	game.wheat_button.tint = rl.WHITE
 	game.egg_button.rec = {150, 40, 32, 32}
-	game.egg_button.tint = rl.BROWN
+	game.egg_button.src = get_sprite_rec_by_name("SellEggs")
+	game.egg_button.tint = rl.WHITE
 	game.milk_button.rec = {150, 75, 32, 32}
-	game.milk_button.tint = rl.BROWN
+	game.milk_button.src = get_sprite_rec_by_name("SellMilk")
+	game.milk_button.tint = rl.WHITE
 
 	for i := 0; i < len(game.tile_arr); i += 1 {
 		game.tile_arr[i].id = i
