@@ -1,6 +1,8 @@
 package game
 
 import rl "vendor:raylib"
+
+STARTING_MONEY :: 10
 IND_ARR_COUNT :: 10
 
 Game :: struct {
@@ -32,23 +34,6 @@ Button :: struct {
 	tint:  rl.Color,
 }
 
-Dropdown_Button :: struct {
-	rec:        rl.Rectangle,
-	state:      Button_State,
-	tint:       rl.Color,
-	text_color: rl.Color,
-	// interact: proc(i: int, ind_type: Industry_Type),
-	type:       Industry_Type,
-	text:       cstring,
-}
-
-Dropwdown :: struct {
-	rec:     rl.Rectangle,
-	buttons: [4]Dropdown_Button,
-	show:    bool,
-	tile_id: int,
-}
-
 game: Game
 
 update :: proc() {
@@ -74,28 +59,7 @@ update :: proc() {
 
 	update_tiles(&game.tile_arr, mousepoint)
 
-	if game.dropdown.show {
-
-		if game.dropdown_just_opened {
-			game.dropdown_just_opened = false
-		} else {
-			for &button in game.dropdown.buttons {
-				if rl.CheckCollisionPointRec(mousepoint, button.rec) &&
-				   button.state != .Disabled {
-					if rl.IsMouseButtonPressed(.LEFT) {
-						change_industry(game.dropdown.tile_id, button.type)
-						hide_dropdown()
-					}
-				}
-			}
-
-			if rl.IsMouseButtonPressed(.LEFT) {
-				if !rl.CheckCollisionPointRec(mousepoint, game.dropdown.rec) {
-					hide_dropdown()
-				}
-			}
-		}
-	}
+	update_dropdown(&game.dropdown, mousepoint)
 }
 
 
@@ -136,20 +100,7 @@ draw :: proc() {
 
 	draw_tiles(&game.tile_arr)
 
-	if game.dropdown.show {
-		rl.DrawRectangleRec(game.dropdown.rec, rl.RAYWHITE)
-
-		for button in game.dropdown.buttons {
-			rl.DrawRectangleRec(button.rec, button.tint)
-			rl.DrawText(
-				button.text,
-				cast(i32)button.rec.x,
-				cast(i32)button.rec.y,
-				20,
-				button.text_color,
-			)
-		}
-	}
+	draw_dropdown(&game.dropdown)
 
 	rl.DrawText(
 		rl.TextFormat("Wheat: %d", game.wheat_count),
@@ -222,10 +173,9 @@ game_init :: proc() {
 		{.ForSale, get_sprite_rec_by_name("ForSale"), 0, 0, 0, 0, 50},
 	}
 
-	game.money = 5
-	game.dropdown.show = false
-	game.dropdown.rec = {0, 0, 150, 205}
-	game.dropdown.buttons = {
+	game.money = STARTING_MONEY
+
+	dropdown_btns: [4]Dropdown_Button = {
 		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Wheat, "Wheat 5"},
 		{
 			{0, 0, 0, 0},
@@ -237,15 +187,8 @@ game_init :: proc() {
 		},
 		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Cow, "Cow 15"},
 		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Empty, "Empty"},
-		// {
-		// 	{0, 0, 0, 0},
-		// 	.Normal,
-		// 	rl.LIGHTGRAY,
-		// 	rl.BLACK,
-		// 	.Unclaimed,
-		// 	"Unclaimed",
-		// },
 	}
+	init_dropdown(&game.dropdown, {0, 0, 150, 205}, dropdown_btns)
 
 	init_tiles(&game.tile_arr)
 	game.spritesheet = rl.LoadTexture("assets\\farm_spritesheet.png")
@@ -274,7 +217,6 @@ game_shutdown_window :: proc() {
 }
 
 @(export)
-// for i := 0; i < len(game.dropdown.buttons); i += 1 {
 game_force_reload :: proc() -> bool {
 	return rl.IsKeyPressed(.F5)
 }
