@@ -69,7 +69,7 @@ Dropdown_Button :: struct {
 
 Dropwdown :: struct {
 	rec:     rl.Rectangle,
-	buttons: [5]Dropdown_Button,
+	buttons: [4]Dropdown_Button,
 	show:    bool,
 	tile_id: int,
 }
@@ -185,7 +185,7 @@ update :: proc() {
 			}
 		}
 
-		if tile.industry.type != .Unclaimed && tile.industry.type != .Empty {
+		if tile.industry.type != .Empty {
 			tile.industry.growth +=
 				tile.industry.growth_rate * rl.GetFrameTime()
 
@@ -319,20 +319,20 @@ game_init :: proc() {
 
 	game.money = 5
 	game.dropdown.show = false
-	game.dropdown.rec = {0, 0, 150, 255}
+	game.dropdown.rec = {0, 0, 150, 205}
 	game.dropdown.buttons = {
 		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Wheat, "Wheat 5"},
 		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Chicken, "Chicken 10"},
 		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Cow, "Cow 15"},
 		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Empty, "Empty"},
-		{
-			{0, 0, 0, 0},
-			.Normal,
-			rl.LIGHTGRAY,
-			rl.BLACK,
-			.Unclaimed,
-			"Unclaimed",
-		},
+		// {
+		// 	{0, 0, 0, 0},
+		// 	.Normal,
+		// 	rl.LIGHTGRAY,
+		// 	rl.BLACK,
+		// 	.Unclaimed,
+		// 	"Unclaimed",
+		// },
 	}
 
 	init_tile_arr(&game.tile_arr)
