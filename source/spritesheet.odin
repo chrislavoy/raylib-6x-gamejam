@@ -42,7 +42,7 @@ sprite_ref := [35]Spritesheet_Reference {
 	{"Cake_Icon", {369, 352, 19, 18}},
 	{"Milk_Icon", {388, 352, 11, 26}},
 	{"Flour_Icon", {399, 352, 13, 21}},
-	{"Egg_Icon", {412, 352, 17, 16}},
+	{"Eggs_Icon", {412, 352, 17, 16}},
 }
 
 get_spritesheet_recs :: proc() -> [35]Spritesheet_Reference {

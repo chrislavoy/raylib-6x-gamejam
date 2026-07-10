@@ -33,10 +33,10 @@ Tile :: struct {
 	industry:          Industry,
 	hovered:           bool,
 	collider:          [8]rl.Vector2,
-	tint:              rl.Color,
 	selectable:        bool,
 	show_progress_bar: bool,
 	progress_bar:      Progress_Bar,
+	product:           Product,
 }
 
 get_initial_tile_positions :: proc() -> [TILE_ARR_COUNT]rl.Rectangle {
@@ -71,10 +71,7 @@ get_initial_tile_positions :: proc() -> [TILE_ARR_COUNT]rl.Rectangle {
 	}
 }
 
-
-init_tiles :: proc(tile_arr: ^[TILE_ARR_COUNT]Tile) {
-	pos_arr := get_initial_tile_positions()
-
+init_tile :: proc(tile: ^Tile, id: int, pos: rl.Rectangle) {
 	collider_points: [8]rl.Vector2 = {
 		{0, 35},
 		{70, 0},
@@ -86,15 +83,29 @@ init_tiles :: proc(tile_arr: ^[TILE_ARR_COUNT]Tile) {
 		{0, 108},
 	}
 
-	for i := 0; i < len(tile_arr); i += 1 {
-		tile_arr[i].id = i
-		tile_arr[i].rec = pos_arr[i]
-		tile_arr[i].tint = rl.WHITE
+	tile.id = id
+	tile.rec = pos
+	for i := 0; i < len(collider_points); i += 1 {
+		tile.collider[i] = {pos.x, pos.y} + collider_points[i]
+	}
 
-		for j := 0; j < len(collider_points); j += 1 {
-			tile_arr[i].collider[j] =
-				{pos_arr[i].x, pos_arr[i].y} + collider_points[j]
-		}
+	change_tile_industry(tile, game.ind_arr[Industry_Type.Unclaimed])
+
+	init_progress_bar(&tile.progress_bar, tile.rec, tile.industry.max_growth)
+
+	init_product(
+		&tile.product,
+		tile.industry.type,
+		{tile.rec.x, tile.rec.y},
+		{216, 124},
+	)
+}
+
+init_tiles :: proc(tile_arr: ^[TILE_ARR_COUNT]Tile) {
+	pos_arr := get_initial_tile_positions()
+
+	for i := 0; i < len(tile_arr); i += 1 {
+		init_tile(&tile_arr[i], i, pos_arr[i])
 
 		if i < 9 {
 			change_tile_industry(
@@ -107,19 +118,6 @@ init_tiles :: proc(tile_arr: ^[TILE_ARR_COUNT]Tile) {
 				game.ind_arr[Industry_Type.Empty],
 			)
 		}
-
-		init_progress_bar(
-			&tile_arr[i].progress_bar,
-			tile_arr[i].rec,
-			tile_arr[i].industry.max_growth,
-		)
-		// } else if i >= 14 && i < 18 {
-		// 	tile_arr[i].industry = game.ind_arr[2]
-		// } else if i >= 18 && i < 22 {
-		// 	tile_arr[i].industry = game.ind_arr[3]
-		// } else {
-		// 	tile_arr[i].industry = game.ind_arr[4]
-		// }
 	}
 
 	change_tile_industry(&tile_arr[1], game.ind_arr[Industry_Type.Storehouse])
@@ -133,6 +131,7 @@ update_tiles :: proc(tiles: ^[TILE_ARR_COUNT]Tile, mouse_pos: rl.Vector2) {
 		if !tile.selectable {
 			continue
 		}
+
 		if !game.dropdown.show {
 			if rl.CheckCollisionPointPoly(
 				mouse_pos,
@@ -140,7 +139,6 @@ update_tiles :: proc(tiles: ^[TILE_ARR_COUNT]Tile, mouse_pos: rl.Vector2) {
 				8,
 			) {
 				tile.hovered = true
-				//tile.tint = rl.RED
 
 				if rl.IsMouseButtonPressed(.LEFT) {
 					show_dropdown(mouse_pos, tile.id)
@@ -148,11 +146,10 @@ update_tiles :: proc(tiles: ^[TILE_ARR_COUNT]Tile, mouse_pos: rl.Vector2) {
 
 			} else {
 				tile.hovered = false
-				//tile.tint = rl.WHITE
 			}
 		}
 
-		if tile.industry.type != .Empty {
+		if tile.industry.type != .Empty && tile.show_progress_bar {
 			tile.industry.growth +=
 				tile.industry.growth_rate * rl.GetFrameTime()
 
@@ -169,8 +166,12 @@ update_tiles :: proc(tiles: ^[TILE_ARR_COUNT]Tile, mouse_pos: rl.Vector2) {
 				case .Chicken:
 					game.egg_count += tile.industry.produced
 				}
+
+				start_product_animation(&tile.product)
 			}
 		}
+
+		update_product(&tile.product)
 	}
 }
 
@@ -200,6 +201,8 @@ draw_tiles :: proc(tiles: ^[TILE_ARR_COUNT]Tile) {
 				)
 			}
 		}
+
+		draw_product(&tile.product)
 	}
 }
 
@@ -216,5 +219,6 @@ change_tile_industry :: proc(tile: ^Tile, industry: Industry) {
 	}
 
 	init_progress_bar(&tile.progress_bar, tile.rec, industry.max_growth)
+	change_product_type(&tile.product, industry.type)
 }
 
