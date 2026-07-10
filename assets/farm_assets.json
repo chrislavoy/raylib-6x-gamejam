@@ -160,39 +160,119 @@
     "duration": 100
    },
    "farm_assets 20.aseprite": {
-    "frame": { "x": 320, "y": 320, "w": 17, "h": 22 },
+    "frame": { "x": 320, "y": 320, "w": 32, "h": 32 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 144, "h": 144 },
+    "duration": 100
+   },
+   "farm_assets 21.aseprite": {
+    "frame": { "x": 352, "y": 320, "w": 32, "h": 32 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 144, "h": 144 },
+    "duration": 100
+   },
+   "farm_assets 22.aseprite": {
+    "frame": { "x": 384, "y": 320, "w": 32, "h": 32 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 144, "h": 144 },
+    "duration": 100
+   },
+   "farm_assets 23.aseprite": {
+    "frame": { "x": 416, "y": 320, "w": 32, "h": 32 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 144, "h": 144 },
+    "duration": 100
+   },
+   "farm_assets 24.aseprite": {
+    "frame": { "x": 448, "y": 320, "w": 32, "h": 32 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 144, "h": 144 },
+    "duration": 100
+   },
+   "farm_assets 25.aseprite": {
+    "frame": { "x": 480, "y": 320, "w": 32, "h": 32 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 144, "h": 144 },
+    "duration": 100
+   },
+   "farm_assets 26.aseprite": {
+    "frame": { "x": 512, "y": 320, "w": 32, "h": 32 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 144, "h": 144 },
+    "duration": 100
+   },
+   "farm_assets 27.aseprite": {
+    "frame": { "x": 544, "y": 320, "w": 32, "h": 32 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 144, "h": 144 },
+    "duration": 100
+   },
+   "farm_assets 28.aseprite": {
+    "frame": { "x": 288, "y": 352, "w": 32, "h": 32 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 144, "h": 144 },
+    "duration": 100
+   },
+   "farm_assets 29.aseprite": {
+    "frame": { "x": 320, "y": 352, "w": 32, "h": 32 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 144, "h": 144 },
+    "duration": 100
+   },
+   "farm_assets 30.aseprite": {
+    "frame": { "x": 352, "y": 352, "w": 17, "h": 22 },
     "rotated": false,
     "trimmed": true,
     "spriteSourceSize": { "x": 7, "y": 5, "w": 17, "h": 22 },
     "sourceSize": { "w": 144, "h": 144 },
     "duration": 100
    },
-   "farm_assets 21.aseprite": {
-    "frame": { "x": 356, "y": 320, "w": 11, "h": 26 },
+   "farm_assets 31.aseprite": {
+    "frame": { "x": 388, "y": 352, "w": 11, "h": 26 },
     "rotated": false,
     "trimmed": true,
     "spriteSourceSize": { "x": 10, "y": 1, "w": 11, "h": 26 },
     "sourceSize": { "w": 144, "h": 144 },
     "duration": 100
    },
-   "farm_assets 22.aseprite": {
-    "frame": { "x": 380, "y": 320, "w": 17, "h": 16 },
+   "farm_assets 32.aseprite": {
+    "frame": { "x": 412, "y": 352, "w": 17, "h": 16 },
     "rotated": false,
     "trimmed": true,
     "spriteSourceSize": { "x": 7, "y": 10, "w": 17, "h": 16 },
     "sourceSize": { "w": 144, "h": 144 },
     "duration": 100
    },
-   "farm_assets 23.aseprite": {
-    "frame": { "x": 367, "y": 320, "w": 13, "h": 21 },
+   "farm_assets 33.aseprite": {
+    "frame": { "x": 399, "y": 352, "w": 13, "h": 21 },
     "rotated": false,
     "trimmed": true,
     "spriteSourceSize": { "x": 9, "y": 6, "w": 13, "h": 21 },
     "sourceSize": { "w": 144, "h": 144 },
     "duration": 100
    },
-   "farm_assets 24.aseprite": {
-    "frame": { "x": 337, "y": 320, "w": 19, "h": 18 },
+   "farm_assets 34.aseprite": {
+    "frame": { "x": 369, "y": 352, "w": 19, "h": 18 },
     "rotated": false,
     "trimmed": true,
     "spriteSourceSize": { "x": 6, "y": 4, "w": 19, "h": 18 },
