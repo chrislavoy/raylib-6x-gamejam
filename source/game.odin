@@ -4,20 +4,33 @@ import rl "vendor:raylib"
 
 STARTING_MONEY :: 10
 IND_ARR_COUNT :: 10
+BUTTON_ARR_COUNT :: 5
+MILL_TITLE_ID :: 4
+BAKERY_TILE_ID :: 6
+
+Button_ID :: enum int {
+	Sell_Wheat,
+	Sell_Eggs,
+	Sell_Milk,
+	Sell_Flour,
+	Sell_Cake,
+}
 
 Game :: struct {
 	wheat_count:          u32,
 	milk_count:           u32,
 	egg_count:            u32,
-	wheat_button:         Button,
-	milk_button:          Button,
-	egg_button:           Button,
+	flour_count:          u32,
+	cake_count:           u32,
 	spritesheet:          rl.Texture,
 	tile_arr:             [TILE_ARR_COUNT]Tile,
 	ind_arr:              [IND_ARR_COUNT]Industry,
 	dropdown:             Dropwdown,
 	money:                u32,
 	dropdown_just_opened: bool,
+	button_arr:           [BUTTON_ARR_COUNT]Button,
+	mill_dropdown:        Dropdown,
+	bakery_dropdown:      Dropdown,
 }
 
 Button_State :: enum {
@@ -40,63 +53,118 @@ update :: proc() {
 	mousepoint := rl.GetMousePosition()
 
 	if rl.IsMouseButtonPressed(.LEFT) {
-		if rl.CheckCollisionPointRec(mousepoint, game.wheat_button.rec) &&
-		   game.wheat_count > 0 {
-			game.wheat_count -= 1
-			game.money += 2
+
+		sell_amount: u32 = 1
+		sell_all := false
+		if rl.IsKeyDown(.LEFT_CONTROL) || rl.IsKeyDown(.RIGHT_CONTROL) {
+			sell_all = true
+		} else if rl.IsKeyDown(.LEFT_SHIFT) || rl.IsKeyDown(.RIGHT_SHIFT) {
+			sell_amount = 10
 		}
-		if rl.CheckCollisionPointRec(mousepoint, game.milk_button.rec) &&
-		   game.milk_count > 0 {
-			game.milk_count -= 1
-			game.money += 3
-		}
-		if rl.CheckCollisionPointRec(mousepoint, game.egg_button.rec) &&
-		   game.egg_count > 0 {
-			game.egg_count -= 1
-			game.money += 1
+
+		for i in 0 ..< BUTTON_ARR_COUNT {
+
+			if !rl.CheckCollisionPointRec(mousepoint, game.button_arr[i].rec) {
+				continue
+			}
+
+			switch Button_ID(i) {
+
+			case .Sell_Wheat:
+				amount := min(game.wheat_count, sell_amount)
+
+				if sell_all {
+					amount = game.wheat_count
+				}
+
+				if amount > 0 {
+					game.wheat_count -= amount
+					game.money += amount * 2
+				}
+			case .Sell_Eggs:
+				amount := min(game.egg_count, sell_amount)
+
+				if sell_all {
+					amount = game.egg_count
+				}
+
+				if amount > 0 {
+					game.egg_count -= amount
+					game.money += amount * 1
+				}
+			case .Sell_Milk:
+				amount := min(game.milk_count, sell_amount)
+
+				if sell_all {
+					amount = game.milk_count
+				}
+
+				if amount > 0 {
+					game.milk_count -= amount
+					game.money += amount * 3
+				}
+			case .Sell_Flour:
+				amount := min(game.flour_count, sell_amount)
+
+				if sell_all {
+					amount = game.flour_count
+				}
+
+				if amount > 0 {
+					game.flour_count -= amount
+					game.money += amount * 4
+				}
+			case .Sell_Cake:
+				amount := min(game.cake_count, sell_amount)
+
+				if sell_all {
+					amount = game.cake_count
+				}
+
+				if amount > 0 {
+					game.cake_count -= amount
+					game.money += amount * 35
+				}
+			}
 		}
 	}
 
+	if rl.IsMouseButtonPressed(.LEFT){
+		if rl.CheckCollisionPointRec(
+			mousepoint,
+			game.tile_arr[MILL_TITLE_ID].rec,
+		) {
+			show_mill_dropdown(mousepoint)
+		}
+
+		if rl.CheckCollisionPointRec(
+			mousepoint,
+			game.tile_arr[BAKERY_TITLE_ID].rec,
+		) {
+			show_bakery_dropdown(mousepoint)
+		}
+		
+	}
 	update_tiles(&game.tile_arr, mousepoint)
 
 	update_dropdown(&game.dropdown, mousepoint)
 }
 
-
 draw :: proc() {
 	rl.BeginDrawing()
 	rl.ClearBackground(rl.Color({70, 130, 50, 255}))
 	rl.DrawRectangle(0, 0, 720, 115, rl.BROWN)
-	// rl.DrawRectangleRec(game.wheat_button.rec, rl.DARKBROWN)
-	rl.DrawTexturePro(
-		game.spritesheet,
-		game.wheat_button.src,
-		game.wheat_button.rec,
-		{0, 0},
-		0,
-		game.wheat_button.tint,
-	)
-	//rl.DrawText("Sell Wheat", 160, 5, 20, rl.BLACK)
-	// rl.DrawRectangleRec(game.egg_button.rec, rl.DARKBROWN)
-	rl.DrawTexturePro(
-		game.spritesheet,
-		game.egg_button.src,
-		game.egg_button.rec,
-		{0, 0},
-		0,
-		game.egg_button.tint,
-	)
-	//rl.DrawText("Sell Eggs", 160, 35, 20, rl.BLACK)
-	// rl.DrawRectangleRec(game.milk_button.rec, rl.DARKBROWN)
-	rl.DrawTexturePro(
-		game.spritesheet,
-		game.milk_button.src,
-		game.milk_button.rec,
-		{0, 0},
-		0,
-		game.milk_button.tint,
-	)
-	//rl.DrawText("Sell Milk", 160, 65, 20, rl.BLACK)
+
+	for button in game.button_arr {
+		rl.DrawTexturePro(
+			game.spritesheet,
+			button.src,
+			button.rec,
+			{0, 0},
+			0,
+			button.tint,
+		)
+	}
 
 	draw_tiles(&game.tile_arr)
 
@@ -123,6 +191,20 @@ draw :: proc() {
 		20,
 		rl.BLACK,
 	)
+	rl.DrawText(
+		rl.TextFormat("Flour: %d", game.flour_count),
+		175,
+		5,
+		20,
+		rl.BLACK,
+	)
+	rl.DrawText(
+		rl.TextFormat("Cake: %d", game.cake_count),
+		175,
+		40,
+		20,
+		rl.BLACK,
+	)
 
 	rl.DrawText(rl.TextFormat("Money: %d", game.money), 600, 10, 20, rl.BLACK)
 	rl.EndDrawing()
@@ -134,19 +216,60 @@ game_update :: proc() {
 	draw()
 }
 
+get_ui_button_initial_positions :: proc() -> [BUTTON_ARR_COUNT]rl.Rectangle {
+	return [BUTTON_ARR_COUNT]rl.Rectangle {
+		{125, 5, 32, 32}, //Wheat
+		{125, 40, 32, 32}, //Eggs
+		{125, 75, 32, 32}, //Milk
+		{275, 5, 32, 32}, //Flour
+		{275, 40, 32, 32}, //Cake
+	}
+}
 @(export)
 game_init :: proc() {
 	// Button_Sound = rl.LoadSound() // Button Sound
 	// Button_Texture = rl.LoadTexture() // Button Texture
-	game.wheat_button.rec = {150, 5, 32, 32}
-	game.wheat_button.src = get_sprite_rec_by_name("SellWheat")
-	game.wheat_button.tint = rl.WHITE
-	game.egg_button.rec = {150, 40, 32, 32}
-	game.egg_button.src = get_sprite_rec_by_name("SellEggs")
-	game.egg_button.tint = rl.WHITE
-	game.milk_button.rec = {150, 75, 32, 32}
-	game.milk_button.src = get_sprite_rec_by_name("SellMilk")
-	game.milk_button.tint = rl.WHITE
+
+	mill_dropdown_buttons: [2]Dropdown_Button = {
+		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Empty, "Mill Flour"},
+		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Empty, "Mill 10 Flour"}
+}
+
+	bakery_dropdown_buttons: [2]Dropdown_Button = {
+		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Empty, "Bake Cake"},
+		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Empty, "Bake 10 Cakes"}
+}
+	positions := get_ui_button_initial_positions()
+
+	game.button_arr[Button_ID.Sell_Wheat] = {
+		rec  = positions[Button_ID.Sell_Wheat],
+		src  = get_sprite_rec_by_name("SellWheat"),
+		tint = rl.WHITE,
+	}
+
+	game.button_arr[Button_ID.Sell_Eggs] = {
+		rec  = positions[Button_ID.Sell_Eggs],
+		src  = get_sprite_rec_by_name("SellEggs"),
+		tint = rl.WHITE,
+	}
+
+	game.button_arr[Button_ID.Sell_Milk] = {
+		rec  = positions[Button_ID.Sell_Milk],
+		src  = get_sprite_rec_by_name("SellMilk"),
+		tint = rl.WHITE,
+	}
+
+	game.button_arr[Button_ID.Sell_Flour] = {
+		rec  = positions[Button_ID.Sell_Flour],
+		src  = get_sprite_rec_by_name("SellFlour"),
+		tint = rl.WHITE,
+	}
+
+	game.button_arr[Button_ID.Sell_Cake] = {
+		rec  = positions[Button_ID.Sell_Cake],
+		src  = get_sprite_rec_by_name("SellCake"),
+		tint = rl.WHITE,
+	}
 
 	for i := 0; i < len(game.tile_arr); i += 1 {
 		game.tile_arr[i].id = i
@@ -190,9 +313,12 @@ game_init :: proc() {
 	}
 	init_dropdown(&game.dropdown, {0, 0, 150, 205}, dropdown_btns)
 
+	init_dropdown(&game.mill_dropdown, 0, 0, 150, 105)
+
 	init_tiles(&game.tile_arr)
 	game.spritesheet = rl.LoadTexture("assets\\farm_spritesheet.png")
 }
+
 
 @(export)
 game_init_window :: proc() {
@@ -228,6 +354,18 @@ game_force_restart :: proc() -> bool {
 
 game_parent_window_size_changed :: proc(w, h: int) {
 	rl.SetWindowSize(i32(w), i32(h))
+}
+
+show_mill_dropdown :: proc(point: rl.Vector2) {
+	game.mill_dropdown.show = true
+	game.mill_dropdown.rec.x = point.x
+	game.mill_dropdown.rec.y = point.y
+}
+
+show_bakery_dropdown :: proc(point: rl.Vector2) {
+	game.bakery_dropdown.show = true
+	game.bakery_dropdown.rec.x = point.x
+	game.bakery_dropdown.rec.y = point.y
 }
 
 show_dropdown :: proc(point: rl.Vector2, tile_id: int) {
