@@ -27,6 +27,7 @@ Tile :: struct {
 	hovered:  bool,
 	collider: [8]rl.Vector2,
 	tint:     rl.Color,
+	selectable: bool,
 }
 
 Game :: struct {
@@ -166,6 +167,9 @@ update :: proc() {
 	}
 
 	for &tile in game.tile_arr {
+		if !tile.selectable {
+			continue
+		}
 		if !game.dropdown.show {
 			if rl.CheckCollisionPointPoly(
 				mousepoint,
@@ -308,6 +312,18 @@ game_init :: proc() {
 	game.egg_button.tint = rl.BROWN
 	game.milk_button.rec = {150, 75, 32, 32}
 	game.milk_button.tint = rl.BROWN
+
+	for i := 0; i < len(game.tile_arr); i += 1 {
+		game.tile_arr[i].id = i
+		game.tile_arr[i].selectable = true
+		game.tile_arr[0].selectable = false
+		game.tile_arr[1].selectable = false
+		game.tile_arr[2].selectable = false
+		game.tile_arr[3].selectable = false
+		game.tile_arr[5].selectable = false
+		game.tile_arr[7].selectable = false
+		game.tile_arr[8].selectable = false
+	}
 
 	game.ind_arr = [5]Industry {
 		{.Unclaimed, {0, 0, 144, 144}, 0, 0, 0, 0, 0},
