@@ -226,13 +226,13 @@ update :: proc() {
 draw :: proc() {
 	rl.BeginDrawing()
 	rl.ClearBackground(rl.Color({70, 130, 50, 255}))
-	rl.DrawRectangle(0, 0, 720, 115, rl.DARKBROWN)
-	rl.DrawRectangleRec(game.wheat_button.rec, rl.BROWN)
-	rl.DrawText("Sell Wheat", 160, 5, 20, rl.BLACK)
-	rl.DrawRectangleRec(game.egg_button.rec, rl.BROWN)
-	rl.DrawText("Sell Eggs", 160, 35, 20, rl.BLACK)
-	rl.DrawRectangleRec(game.milk_button.rec, rl.BROWN)
-	rl.DrawText("Sell Milk", 160, 65, 20, rl.BLACK)
+	rl.DrawRectangle(0, 0, 720, 115, rl.BROWN)
+	rl.DrawRectangleRec(game.wheat_button.rec, rl.DARKBROWN)
+	//rl.DrawText("Sell Wheat", 160, 5, 20, rl.BLACK)
+	rl.DrawRectangleRec(game.egg_button.rec, rl.DARKBROWN)
+	//rl.DrawText("Sell Eggs", 160, 35, 20, rl.BLACK)
+	rl.DrawRectangleRec(game.milk_button.rec, rl.DARKBROWN)
+	//rl.DrawText("Sell Milk", 160, 65, 20, rl.BLACK)
 
 	for tile in game.tile_arr {
 		rl.DrawTexturePro(
@@ -270,19 +270,19 @@ draw :: proc() {
 	rl.DrawText(
 		rl.TextFormat("Eggs: %d", game.egg_count),
 		10,
-		35,
+		40,
 		20,
 		rl.BLACK,
 	)
 	rl.DrawText(
 		rl.TextFormat("Milk: %d", game.milk_count),
 		10,
-		65,
+		75,
 		20,
 		rl.BLACK,
 	)
 
-	rl.DrawText(rl.TextFormat("Money: %d", game.money), 10, 95, 20, rl.BLACK)
+	rl.DrawText(rl.TextFormat("Money: %d", game.money), 600, 10, 20, rl.BLACK)
 	rl.EndDrawing()
 }
 
@@ -296,11 +296,11 @@ game_update :: proc() {
 game_init :: proc() {
 	// Button_Sound = rl.LoadSound() // Button Sound
 	// Button_Texture = rl.LoadTexture() // Button Texture
-	game.wheat_button.rec = {150, 5, 60, 20}
+	game.wheat_button.rec = {150, 5, 32, 32}
 	game.wheat_button.tint = rl.BROWN
-	game.egg_button.rec = {150, 35, 60, 20}
+	game.egg_button.rec = {150, 40, 32, 32}
 	game.egg_button.tint = rl.BROWN
-	game.milk_button.rec = {150, 65, 60, 20}
+	game.milk_button.rec = {150, 75, 32, 32}
 	game.milk_button.tint = rl.BROWN
 
 	game.ind_arr = [5]Industry {
