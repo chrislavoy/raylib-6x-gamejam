@@ -17,6 +17,7 @@ Button_ID :: enum int {
 }
 
 Production :: struct {
+	id:      int,
 	show:    bool,
 	rec:     rl.Rectangle,
 	buttons: [2]Dropdown_Button,
@@ -24,32 +25,24 @@ Production :: struct {
 
 update_production :: proc(
 	production: ^Production,
-	mousepoint : rl.Vector2,
+	mousepoint: rl.Vector2,
+	fs: ^Frame_State,
 ) {
 	if !production.show {
 		return
 	}
 
-	if rl.IsMouseButtonPressed(.LEFT) {
-		if !rl.CheckCollisionPointRec(
-			mousepoint,
-			production.rec,
-		) {
-			production.show = false
-		}
+	if rl.CheckCollisionPointRec(mousepoint, production.rec) {
+		fs.mouse_over_production = true
+		fs.production = production
 	}
 }
 
-draw_production :: proc(
-	production: ^Production,
-) {
+draw_production :: proc(production: ^Production) {
 	if !production.show {
 		return
 	}
-	rl.DrawRectangleRec(
-		production.rec,
-		rl.LIGHTGRAY,
-	)
+	rl.DrawRectangleRec(production.rec, rl.LIGHTGRAY)
 	for _ in production.buttons {
 
 	}
@@ -57,6 +50,7 @@ draw_production :: proc(
 
 init_production :: proc(
 	dropdown: ^Production,
+	id: int,
 	rec: rl.Rectangle,
 	buttons: [2]Dropdown_Button,
 ) {
@@ -65,20 +59,21 @@ init_production :: proc(
 }
 
 Game :: struct {
-	wheat_count:          u32,
-	milk_count:           u32,
-	egg_count:            u32,
-	flour_count:          u32,
-	cake_count:           u32,
-	spritesheet:          rl.Texture,
-	tile_arr:             [TILE_ARR_COUNT]Tile,
-	ind_arr:              [IND_ARR_COUNT]Industry,
-	dropdown:             Dropdown,
-	money:                u32,
-	dropdown_just_opened: bool,
-	button_arr:           [BUTTON_ARR_COUNT]Button,
-	mill_dropdown:        Production,
-	bakery_dropdown:      Production,
+	wheat_count:     u32,
+	milk_count:      u32,
+	egg_count:       u32,
+	flour_count:     u32,
+	cake_count:      u32,
+	spritesheet:     rl.Texture,
+	tile_arr:        [TILE_ARR_COUNT]Tile,
+	ind_arr:         [IND_ARR_COUNT]Industry,
+	dropdown:        Dropdown,
+	money:           u32,
+	// dropdown_just_opened: bool,
+	button_arr:      [BUTTON_ARR_COUNT]Button,
+	mill_dropdown:   Production,
+	bakery_dropdown: Production,
+	dropdown_open:   bool,
 }
 
 Button_State :: enum {
@@ -89,34 +84,103 @@ Button_State :: enum {
 }
 
 Button :: struct {
+	id:    Button_ID,
 	rec:   rl.Rectangle,
 	src:   rl.Rectangle,
 	state: Button_State,
 	tint:  rl.Color,
 }
 
+Frame_State :: struct {
+	mouse_over_tile:              bool,
+	tile:                         ^Tile,
+	mouse_over_button:            bool,
+	button:                       ^Button,
+	mouse_over_dropdown:          bool,
+	dropdown:                     ^Dropdown,
+	mouse_over_dropdown_button:   bool,
+	dropdown_button:              ^Dropdown_Button,
+	mouse_over_production:        bool,
+	production:                   ^Production,
+	mouse_over_production_button: bool,
+}
+
 game: Game
 
 update :: proc() {
+	fs: Frame_State
+
 	mousepoint := rl.GetMousePosition()
 
+	for i in 0 ..< BUTTON_ARR_COUNT {
+		if rl.CheckCollisionPointRec(mousepoint, game.button_arr[i].rec) {
+			fs.mouse_over_button = true
+			fs.button = &game.button_arr[i]
+		}
+	}
+
+	update_tiles(&game.tile_arr, mousepoint, &fs)
+
+	update_dropdown(&game.dropdown, mousepoint, &fs)
+	update_production(&game.mill_dropdown, mousepoint, &fs)
+	update_production(&game.bakery_dropdown, mousepoint, &fs)
+
+	// Handle Input
 	if rl.IsMouseButtonPressed(.LEFT) {
 
-		sell_amount: u32 = 1
-		sell_all := false
-		if rl.IsKeyDown(.LEFT_CONTROL) || rl.IsKeyDown(.RIGHT_CONTROL) {
-			sell_all = true
-		} else if rl.IsKeyDown(.LEFT_SHIFT) || rl.IsKeyDown(.RIGHT_SHIFT) {
-			sell_amount = 10
-		}
-
-		for i in 0 ..< BUTTON_ARR_COUNT {
-
-			if !rl.CheckCollisionPointRec(mousepoint, game.button_arr[i].rec) {
-				continue
+		if game.dropdown_open {
+			if fs.mouse_over_production {
+				if fs.mouse_over_production_button {
+				}
+			} else if fs.mouse_over_dropdown {
+				if fs.mouse_over_dropdown_button {
+					change_industry(
+						game.dropdown.tile_id,
+						fs.dropdown_button.type,
+					)
+					hide_dropdown()
+				}
+			} else {
+				hide_dropdown()
+				game.dropdown.show = false
+				game.mill_dropdown.show = false
+				game.bakery_dropdown.show = false
+				game.dropdown_open = false
 			}
 
-			switch Button_ID(i) {
+			return
+		}
+
+		if fs.mouse_over_tile {
+			switch fs.tile.industry.type {
+			case .Mill:
+				show_mill_production(mousepoint)
+
+			case .Bakery:
+				show_mill_production(mousepoint)
+
+			case .Unclaimed,
+			     .Empty,
+			     .Wheat,
+			     .Cow,
+			     .Chicken,
+			     .Farmhouse,
+			     .Storehouse,
+			     .ForSale:
+				show_dropdown(mousepoint, fs.tile.id)
+			}
+		}
+
+		if fs.mouse_over_button {
+			sell_amount: u32 = 1
+			sell_all := false
+			if rl.IsKeyDown(.LEFT_CONTROL) || rl.IsKeyDown(.RIGHT_CONTROL) {
+				sell_all = true
+			} else if rl.IsKeyDown(.LEFT_SHIFT) || rl.IsKeyDown(.RIGHT_SHIFT) {
+				sell_amount = 10
+			}
+
+			switch Button_ID(fs.button.id) {
 
 			case .Sell_Wheat:
 				amount := min(game.wheat_count, sell_amount)
@@ -176,11 +240,6 @@ update :: proc() {
 			}
 		}
 	}
-	update_tiles(&game.tile_arr, mousepoint)
-
-	update_dropdown(&game.dropdown, mousepoint)
-	update_production(&game.mill_dropdown, mousepoint)
-	update_production(&game.bakery_dropdown, mousepoint)
 }
 
 draw :: proc() {
@@ -291,30 +350,35 @@ game_init :: proc() {
 	positions := get_ui_button_initial_positions()
 
 	game.button_arr[Button_ID.Sell_Wheat] = {
+		id   = .Sell_Wheat,
 		rec  = positions[Button_ID.Sell_Wheat],
 		src  = get_sprite_rec_by_name("SellWheat"),
 		tint = rl.WHITE,
 	}
 
 	game.button_arr[Button_ID.Sell_Eggs] = {
+		id   = .Sell_Eggs,
 		rec  = positions[Button_ID.Sell_Eggs],
 		src  = get_sprite_rec_by_name("SellEggs"),
 		tint = rl.WHITE,
 	}
 
 	game.button_arr[Button_ID.Sell_Milk] = {
+		id   = .Sell_Milk,
 		rec  = positions[Button_ID.Sell_Milk],
 		src  = get_sprite_rec_by_name("SellMilk"),
 		tint = rl.WHITE,
 	}
 
 	game.button_arr[Button_ID.Sell_Flour] = {
+		id   = .Sell_Flour,
 		rec  = positions[Button_ID.Sell_Flour],
 		src  = get_sprite_rec_by_name("SellFlour"),
 		tint = rl.WHITE,
 	}
 
 	game.button_arr[Button_ID.Sell_Cake] = {
+		id   = .Sell_Cake,
 		rec  = positions[Button_ID.Sell_Cake],
 		src  = get_sprite_rec_by_name("SellCake"),
 		tint = rl.WHITE,
@@ -364,11 +428,13 @@ game_init :: proc() {
 
 	init_production(
 		&game.mill_dropdown,
+		0,
 		{0, 0, 150, 105},
 		mill_dropdown_buttons,
 	)
 	init_production(
 		&game.bakery_dropdown,
+		1,
 		{0, 0, 150, 105},
 		bakery_dropdown_buttons,
 	)
@@ -415,20 +481,23 @@ game_parent_window_size_changed :: proc(w, h: int) {
 }
 
 show_mill_production :: proc(point: rl.Vector2) {
+	game.dropdown_open = true
 	game.mill_dropdown.show = true
 	game.mill_dropdown.rec.x = point.x
 	game.mill_dropdown.rec.y = point.y
 }
 
 show_bakery_production :: proc(point: rl.Vector2) {
+	game.dropdown_open = true
 	game.bakery_dropdown.show = true
 	game.bakery_dropdown.rec.x = point.x
 	game.bakery_dropdown.rec.y = point.y
 }
 
 show_dropdown :: proc(point: rl.Vector2, tile_id: int) {
+	game.dropdown_open = true
 	game.dropdown.show = true
-	game.dropdown_just_opened = true
+	// game.dropdown_just_opened = true
 	game.dropdown.tile_id = tile_id
 	game.dropdown.rec.x = point.x
 	game.dropdown.rec.y = point.y
@@ -460,6 +529,7 @@ show_dropdown :: proc(point: rl.Vector2, tile_id: int) {
 
 hide_dropdown :: proc() {
 	game.dropdown.show = false
+	game.dropdown_open = false
 }
 
 change_industry :: proc(i: int, ind_type: Industry_Type) {

@@ -28,28 +28,28 @@ init_dropdown :: proc(
 	dropdown.buttons = buttons
 }
 
-update_dropdown :: proc(dropdown: ^Dropdown, mouse_pos: rl.Vector2) {
+update_dropdown :: proc(
+	dropdown: ^Dropdown,
+	mouse_pos: rl.Vector2,
+	fs: ^Frame_State,
+) {
 	if game.dropdown.show {
 
-		if game.dropdown_just_opened {
-			game.dropdown_just_opened = false
-		} else {
-			for &button in game.dropdown.buttons {
-				if rl.CheckCollisionPointRec(mouse_pos, button.rec) &&
-				   button.state != .Disabled {
-					if rl.IsMouseButtonPressed(.LEFT) {
-						change_industry(game.dropdown.tile_id, button.type)
-						hide_dropdown()
-					}
-				}
-			}
-
-			if rl.IsMouseButtonPressed(.LEFT) {
-				if !rl.CheckCollisionPointRec(mouse_pos, game.dropdown.rec) {
-					hide_dropdown()
-				}
+		// if game.dropdown_just_opened {
+		// 	game.dropdown_just_opened = false
+		// } else {
+		if rl.CheckCollisionPointRec(mouse_pos, game.dropdown.rec) {
+			fs.mouse_over_dropdown = true
+			fs.dropdown = dropdown
+		}
+		for &button in game.dropdown.buttons {
+			if rl.CheckCollisionPointRec(mouse_pos, button.rec) &&
+			   button.state != .Disabled {
+				fs.mouse_over_dropdown_button = true
+				fs.dropdown_button = &button
 			}
 		}
+		// }
 	}
 }
 

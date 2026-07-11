@@ -126,7 +126,11 @@ init_tiles :: proc(tile_arr: ^[TILE_ARR_COUNT]Tile) {
 	change_tile_industry(&tile_arr[6], game.ind_arr[Industry_Type.Bakery])
 }
 
-update_tiles :: proc(tiles: ^[TILE_ARR_COUNT]Tile, mouse_pos: rl.Vector2) {
+update_tiles :: proc(
+	tiles: ^[TILE_ARR_COUNT]Tile,
+	mouse_pos: rl.Vector2,
+	fs: ^Frame_State,
+) {
 	for &tile in tiles {
 		if !tile.selectable {
 			continue
@@ -139,29 +143,8 @@ update_tiles :: proc(tiles: ^[TILE_ARR_COUNT]Tile, mouse_pos: rl.Vector2) {
 				8,
 			) {
 				tile.hovered = true
-
-				if rl.IsMouseButtonPressed(.LEFT) {
-
-					switch tile.industry.type {
-					case .Mill:
-						show_mill_production(mouse_pos)
-
-					case .Bakery:
-						show_mill_production(mouse_pos)
-
-					case .Unclaimed,
-					     .Empty,
-					     .Wheat,
-					     .Cow,
-					     .Chicken,
-					     .Farmhouse,
-					     .Storehouse,
-					     .ForSale:
-						show_dropdown(mouse_pos, tile.id)
-					}
-
-				}
-
+				fs.mouse_over_tile = true
+				fs.tile = &tile
 			} else {
 				tile.hovered = false
 			}
