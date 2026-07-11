@@ -124,13 +124,3 @@ end_product_animation :: proc(product: ^Product) {
 	product.show = false
 	rl.PlaySound(game.collect_sound)
 }
-
-// C1 :: 1.70158
-// C3 :: C1 + 1
-//
-// ease_in_back :: proc(pos: rl.Vector2) -> rl.Vector2 {
-// 	return {
-// 		C3 * pos.x * pos.x * pos.x - C1 * pos.x * pos.x,
-// 		C3 * pos.y * pos.y * pos.y - C1 * pos.y * pos.y,
-// 	}
-// }

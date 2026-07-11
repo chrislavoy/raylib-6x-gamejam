@@ -166,6 +166,10 @@ update_tiles :: proc(
 					game.milk_count += tile.industry.produced
 				case .Chicken:
 					game.egg_count += tile.industry.produced
+				case .Mill:
+					game.flour_count += tile.industry.produced
+				case .Bakery:
+					game.cake_count += tile.industry.produced
 				}
 
 				start_product_animation(&tile.product)

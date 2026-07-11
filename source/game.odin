@@ -326,8 +326,30 @@ game_init :: proc() {
 	// Button_Texture = rl.LoadTexture() // Button Texture
 	game.collect_sound = rl.LoadSound("assets\\collect.wav")
 
+	img_arr: [10]rl.Rectangle = {
+		get_sprite_rec_by_name("WheatImg"),
+		get_sprite_rec_by_name("WheatImg_Clicked"),
+		get_sprite_rec_by_name("MilkImg"),
+		get_sprite_rec_by_name("MilkImg_Clicked"),
+		get_sprite_rec_by_name("EggsImg"),
+		get_sprite_rec_by_name("EggsImg_Clicked"),
+		get_sprite_rec_by_name("FlourImg"),
+		get_sprite_rec_by_name("FlourImg_Clicked"),
+		get_sprite_rec_by_name("CakeImg"),
+		get_sprite_rec_by_name("CakeImg_Clicked"),
+	}
+
 	mill_dropdown_buttons: [2]Dropdown_Button = {
-		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Empty, "Mill Flour"},
+		{
+			{0, 0, 0, 0},
+			.Normal,
+			rl.LIGHTGRAY,
+			rl.BLACK,
+			.Empty,
+			"Mill Flour",
+			img_arr[6],
+			{0, 0, 32, 32},
+		},
 		{
 			{0, 0, 0, 0},
 			.Normal,
@@ -335,11 +357,22 @@ game_init :: proc() {
 			rl.BLACK,
 			.Empty,
 			"Mill 10 Flour",
+			img_arr[6],
+			{0, 0, 32, 32},
 		},
 	}
 
 	bakery_dropdown_buttons: [2]Dropdown_Button = {
-		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Empty, "Bake Cake"},
+		{
+			{0, 0, 0, 0},
+			.Normal,
+			rl.LIGHTGRAY,
+			rl.BLACK,
+			.Empty,
+			"Bake Cake",
+			img_arr[8],
+			{0, 0, 32, 32},
+		},
 		{
 			{0, 0, 0, 0},
 			.Normal,
@@ -347,6 +380,8 @@ game_init :: proc() {
 			rl.BLACK,
 			.Empty,
 			"Bake 10 Cakes",
+			img_arr[8],
+			{0, 0, 32, 32},
 		},
 	}
 	positions := get_ui_button_initial_positions()
@@ -414,7 +449,16 @@ game_init :: proc() {
 	game.money = STARTING_MONEY
 
 	dropdown_btns: [4]Dropdown_Button = {
-		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Wheat, "Wheat 5"},
+		{
+			{0, 0, 0, 0},
+			.Normal,
+			rl.LIGHTGRAY,
+			rl.BLACK,
+			.Wheat,
+			"Wheat 5",
+			img_arr[0],
+			{0, 0, 32, 32},
+		},
 		{
 			{0, 0, 0, 0},
 			.Normal,
@@ -422,9 +466,29 @@ game_init :: proc() {
 			rl.BLACK,
 			.Chicken,
 			"Chicken 10",
+			img_arr[4],
+			{0, 0, 32, 32},
 		},
-		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Cow, "Cow 15"},
-		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Empty, "Empty"},
+		{
+			{0, 0, 0, 0},
+			.Normal,
+			rl.LIGHTGRAY,
+			rl.BLACK,
+			.Cow,
+			"Cow 15",
+			img_arr[2],
+			{0, 0, 32, 32},
+		},
+		{
+			{0, 0, 0, 0},
+			.Normal,
+			rl.LIGHTGRAY,
+			rl.BLACK,
+			.Empty,
+			"Empty",
+			{0, 0, 0, 0},
+			{0, 0, 0, 0},
+		},
 	}
 	init_dropdown(&game.dropdown, {0, 0, 150, 205}, dropdown_btns)
 
@@ -520,6 +584,14 @@ show_dropdown :: proc(point: rl.Vector2, tile_id: int) {
 			game.dropdown.rec.width - 10,
 			45,
 		}
+		game.dropdown.buttons[i].img_dst_rec.x =
+			game.dropdown.buttons[i].rec.x +
+			game.dropdown.buttons[i].rec.width -
+			35
+		game.dropdown.buttons[i].img_dst_rec.y =
+			game.dropdown.buttons[i].rec.y +
+			game.dropdown.buttons[i].rec.height -
+			39
 		if game.money >= game.ind_arr[game.dropdown.buttons[i].type].cost {
 			game.dropdown.buttons[i].state = .Normal
 			game.dropdown.buttons[i].text_color = rl.BLACK
@@ -539,4 +611,8 @@ change_industry :: proc(i: int, ind_type: Industry_Type) {
 	game.money -= game.ind_arr[ind_type].cost
 
 	change_tile_industry(&game.tile_arr[i], game.ind_arr[ind_type])
+}
+
+toggle_industry :: proc(i: int) {
+	game.tile_arr[i].show_progress_bar = !game.tile_arr[i].show_progress_bar
 }

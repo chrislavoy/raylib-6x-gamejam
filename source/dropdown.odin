@@ -3,12 +3,14 @@ package game
 import rl "vendor:raylib"
 
 Dropdown_Button :: struct {
-	rec:        rl.Rectangle,
-	state:      Button_State,
-	tint:       rl.Color,
-	text_color: rl.Color,
-	type:       Industry_Type,
-	text:       cstring,
+	rec:         rl.Rectangle,
+	state:       Button_State,
+	tint:        rl.Color,
+	text_color:  rl.Color,
+	type:        Industry_Type,
+	text:        cstring,
+	img_src_rec: rl.Rectangle,
+	img_dst_rec: rl.Rectangle,
 }
 
 Dropdown :: struct {
@@ -34,10 +36,6 @@ update_dropdown :: proc(
 	fs: ^Frame_State,
 ) {
 	if game.dropdown.show {
-
-		// if game.dropdown_just_opened {
-		// 	game.dropdown_just_opened = false
-		// } else {
 		if rl.CheckCollisionPointRec(mouse_pos, game.dropdown.rec) {
 			fs.mouse_over_dropdown = true
 			fs.dropdown = dropdown
@@ -49,7 +47,6 @@ update_dropdown :: proc(
 				fs.dropdown_button = &button
 			}
 		}
-		// }
 	}
 }
 
@@ -65,6 +62,14 @@ draw_dropdown :: proc(dropdown: ^Dropdown) {
 				cast(i32)button.rec.y,
 				20,
 				button.text_color,
+			)
+			rl.DrawTexturePro(
+				game.spritesheet,
+				button.img_src_rec,
+				button.img_dst_rec,
+				{0, 0},
+				0,
+				rl.WHITE,
 			)
 		}
 	}
