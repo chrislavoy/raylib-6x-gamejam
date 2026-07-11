@@ -177,22 +177,22 @@ update :: proc() {
 		}
 	}
 
-	if rl.IsMouseButtonPressed(.LEFT) {
-		if rl.CheckCollisionPointRec(
-			mousepoint,
-			game.tile_arr[MILL_TILE_ID].rec,
-		) {
-			show_mill_production(mousepoint)
-		}
+	// if rl.IsMouseButtonPressed(.LEFT) {
+	// 	if rl.CheckCollisionPointRec(
+	// 		mousepoint,
+	// 		game.tile_arr[MILL_TILE_ID].rec,
+	// 	) {
+	// 		show_mill_production(mousepoint)
+	// 	}
 
-		if rl.CheckCollisionPointRec(
-			mousepoint,
-			game.tile_arr[BAKERY_TILE_ID].rec,
-		) {
-			show_bakery_production(mousepoint)
-		}
+	// 	if rl.CheckCollisionPointRec(
+	// 		mousepoint,
+	// 		game.tile_arr[BAKERY_TILE_ID].rec,
+	// 	) {
+	// 		show_bakery_production(mousepoint)
+	// 	}
 
-	}
+	// }
 	update_tiles(&game.tile_arr, mousepoint)
 
 	update_dropdown(&game.dropdown, mousepoint)

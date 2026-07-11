@@ -141,7 +141,25 @@ update_tiles :: proc(tiles: ^[TILE_ARR_COUNT]Tile, mouse_pos: rl.Vector2) {
 				tile.hovered = true
 
 				if rl.IsMouseButtonPressed(.LEFT) {
-					show_dropdown(mouse_pos, tile.id)
+
+					switch tile.industry.type {
+					case .Mill:
+						show_mill_production(mouse_pos)
+
+					case .Bakery:
+						show_mill_production(mouse_pos)
+
+					case .Unclaimed,
+					     .Empty,
+					     .Wheat,
+					     .Cow,
+					     .Chicken,
+					     .Farmhouse,
+					     .Storehouse,
+					     .ForSale:
+						show_dropdown(mouse_pos, tile.id)
+					}
+
 				}
 
 			} else {
@@ -221,4 +239,3 @@ change_tile_industry :: proc(tile: ^Tile, industry: Industry) {
 	init_progress_bar(&tile.progress_bar, tile.rec, industry.max_growth)
 	change_product_type(&tile.product, industry.type)
 }
-
