@@ -1,9 +1,10 @@
 package game
 
+import "core:strings"
 import rl "vendor:raylib"
 
 STARTING_MONEY :: 10
-IND_ARR_COUNT :: 10
+IND_ARR_COUNT :: 12
 BUTTON_ARR_COUNT :: 5
 MILL_TILE_ID :: 4
 BAKERY_TILE_ID :: 6
@@ -84,7 +85,6 @@ handle_input :: proc(fs: ^Frame_State) {
 			if fs.mouse_over_production {
 				if fs.mouse_over_production_button {
 					toggle_industry(fs.production_button.type)
-					// hide_dropdowns()
 				}
 			} else if fs.mouse_over_dropdown {
 				if fs.mouse_over_dropdown_button {
@@ -107,6 +107,10 @@ handle_input :: proc(fs: ^Frame_State) {
 				show_mill_production(fs.input_pos)
 			case .Bakery:
 				show_bakery_production(fs.input_pos)
+			case .MillForSale:
+				change_industry(fs.tile.id, .Mill)
+			case .BakeryForSale:
+				change_industry(fs.tile.id, .Bakery)
 			case .Unclaimed,
 			     .Empty,
 			     .Wheat,
@@ -321,16 +325,36 @@ game_init :: proc() {
 	}
 
 	game.ind_arr = [IND_ARR_COUNT]Industry {
-		{.Unclaimed, get_sprite_rec_by_name("Unclaimed"), 0, 0, 0, 0, 0},
-		{.Empty, get_sprite_rec_by_name("Empty"), 0, 0, 0, 0, 0},
-		{.Wheat, get_sprite_rec_by_name("Wheat"), 1, 20, 0, 1, 5},
-		{.Cow, get_sprite_rec_by_name("Cows"), 1, 25, 0, 1, 15},
-		{.Chicken, get_sprite_rec_by_name("Chickens"), 1, 20, 0, 3, 10},
-		{.Farmhouse, get_sprite_rec_by_name("Farmhouse"), 0, 0, 0, 0, 0},
-		{.Mill, get_sprite_rec_by_name("Mill"), 1, 20, 0, 1, 100},
-		{.Bakery, get_sprite_rec_by_name("Bakery"), 1, 60, 0, 1, 500},
-		{.Storehouse, get_sprite_rec_by_name("Storehouse"), 0, 0, 0, 0, 250},
-		{.ForSale, get_sprite_rec_by_name("ForSale"), 0, 0, 0, 0, 50},
+		{.Unclaimed, get_sprite_rec_by_name("Unclaimed"), 0, 0, 0, 0, 0, 0},
+		{.Empty, get_sprite_rec_by_name("Empty"), 0, 0, 0, 0, 0, 0},
+		{.Wheat, get_sprite_rec_by_name("Wheat"), 1, 20, 0, 1, 5, 5},
+		{.Cow, get_sprite_rec_by_name("Cows"), 1, 25, 0, 1, 15, 5},
+		{.Chicken, get_sprite_rec_by_name("Chickens"), 1, 20, 0, 3, 10, 5},
+		{.Farmhouse, get_sprite_rec_by_name("Farmhouse"), 0, 0, 0, 0, 0, 0},
+		{.Mill, get_sprite_rec_by_name("Mill"), 1, 20, 0, 1, 100, 0},
+		{.Bakery, get_sprite_rec_by_name("Bakery"), 1, 60, 0, 1, 500, 0},
+		{
+			.Storehouse,
+			get_sprite_rec_by_name("Storehouse"),
+			0,
+			0,
+			0,
+			0,
+			250,
+			0,
+		},
+		{.ForSale, get_sprite_rec_by_name("ForSale"), 0, 0, 0, 0, 50, 0},
+		{.MillForSale, get_sprite_rec_by_name("Mill"), 1, 20, 0, 1, 100, 0},
+		{
+			.BakeryForSale,
+			get_sprite_rec_by_name("Bakery"),
+			1,
+			60,
+			0,
+			1,
+			500,
+			0,
+		},
 	}
 
 	game.money = STARTING_MONEY
@@ -377,7 +401,7 @@ game_init :: proc() {
 			rl.LIGHTGRAY,
 			rl.BLACK,
 			.Empty,
-			"Empty",
+			"Sell",
 			{0, 0, 0, 0},
 			{0, 0, 0, 0},
 		},
@@ -427,7 +451,6 @@ game_init :: proc() {
 	rl.PlayMusicStream(game.music)
 }
 
-
 @(export)
 game_init_window :: proc() {
 	rl.InitWindow(720, 720, "Farm Game")
@@ -443,6 +466,7 @@ game_should_run :: proc() -> bool {
 game_shutdown :: proc() {
 	rl.UnloadTexture(game.spritesheet)
 	rl.UnloadSound(game.collect_sound)
+	strings.builder_destroy(&game.dropdown.sb)
 }
 
 @(export)
@@ -466,19 +490,37 @@ game_parent_window_size_changed :: proc(w, h: int) {
 }
 
 change_industry :: proc(i: int, ind_type: Industry_Type) {
-	game.money -= game.ind_arr[ind_type].cost
+	can_change := true
+	prev_ind := game.tile_arr[i].industry.type
 
 	#partial switch ind_type {
 	case .Wheat:
 		rl.PlaySound(game.place_wheat_sound)
+		game.money -= game.ind_arr[ind_type].cost
 	case .Chicken:
 		rl.PlaySound(game.place_chicken_sound)
+		game.money -= game.ind_arr[ind_type].cost
 	case .Cow:
 		rl.PlaySound(game.place_cow_sound)
+		game.money -= game.ind_arr[ind_type].cost
 	case .Empty:
 		rl.PlaySound(game.place_empty_sound)
+		game.money += game.ind_arr[prev_ind].sell_value
+	case .Mill:
+		if game.money >= game.ind_arr[ind_type].cost {
+			game.money -= game.ind_arr[ind_type].cost
+		} else {
+			can_change = false
+		}
+	case .Bakery:
+		if game.money >= game.ind_arr[ind_type].cost {
+			game.money -= game.ind_arr[ind_type].cost
+		} else {
+			can_change = false
+		}
 	}
 
-
-	change_tile_industry(&game.tile_arr[i], game.ind_arr[ind_type])
+	if can_change {
+		change_tile_industry(&game.tile_arr[i], game.ind_arr[ind_type])
+	}
 }

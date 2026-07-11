@@ -1,5 +1,6 @@
 package game
 
+import "core:strings"
 import rl "vendor:raylib"
 
 Dropdown_Button :: struct {
@@ -18,6 +19,7 @@ Dropdown :: struct {
 	buttons: [4]Dropdown_Button,
 	show:    bool,
 	tile_id: int,
+	sb:      strings.Builder,
 }
 
 init_dropdown :: proc(
@@ -28,6 +30,7 @@ init_dropdown :: proc(
 	dropdown.show = false
 	dropdown.rec = rec
 	dropdown.buttons = buttons
+	dropdown.sb = strings.builder_make()
 }
 
 update_dropdown :: proc(dropdown: ^Dropdown, fs: ^Frame_State) {
@@ -78,6 +81,11 @@ show_dropdown :: proc(point: rl.Vector2, tile_id: int) {
 	game.dropdown.rec.x = point.x
 	game.dropdown.rec.y = point.y
 	tile_ind := game.tile_arr[tile_id].industry.type
+	sell_value := game.tile_arr[tile_id].industry.sell_value
+	strings.builder_reset(&game.dropdown.sb)
+	strings.write_string(&game.dropdown.sb, "Sell ")
+	strings.write_int(&game.dropdown.sb, cast(int)sell_value)
+	sell_cstring := strings.to_cstring(&game.dropdown.sb)
 
 	if game.dropdown.rec.x + game.dropdown.rec.width > 720 {
 		game.dropdown.rec.x = 720 - game.dropdown.rec.width
@@ -94,15 +102,18 @@ show_dropdown :: proc(point: rl.Vector2, tile_id: int) {
 			game.dropdown.rec.width - 10,
 			45,
 		}
+
 		game.dropdown.buttons[i].img_dst_rec.x =
 			game.dropdown.buttons[i].rec.x +
 			game.dropdown.buttons[i].rec.width -
 			game.dropdown.buttons[i].img_src_rec.width -
 			5
+
 		game.dropdown.buttons[i].img_dst_rec.y =
 			game.dropdown.buttons[i].rec.y +
 			(game.dropdown.buttons[i].rec.height / 2) -
 			(game.dropdown.buttons[i].img_src_rec.height / 2)
+
 		if game.money < game.ind_arr[game.dropdown.buttons[i].type].cost ||
 		   game.dropdown.buttons[i].type == tile_ind {
 			game.dropdown.buttons[i].state = .Disabled
@@ -110,6 +121,10 @@ show_dropdown :: proc(point: rl.Vector2, tile_id: int) {
 		} else {
 			game.dropdown.buttons[i].state = .Normal
 			game.dropdown.buttons[i].text_color = rl.BLACK
+		}
+
+		if game.dropdown.buttons[i].type == .Empty {
+			game.dropdown.buttons[i].text = sell_cstring
 		}
 	}
 }
