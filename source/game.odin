@@ -23,7 +23,6 @@ Production :: struct {
 	button: Dropdown_Button,
 }
 
-
 update_production :: proc(
 	production: ^Production,
 	mousepoint: rl.Vector2,
@@ -46,10 +45,87 @@ update_production :: proc(
 
 draw_bakery_production :: proc() {
 	rl.DrawRectangleRec(game.bakery_dropdown.rec, rl.LIGHTGRAY)
+	line_end_pos: rl.Vector2 = {
+		game.bakery_dropdown.rec.x + game.bakery_dropdown.rec.width - 19 - 5,
+		game.bakery_dropdown.rec.y + (150 / 2) + 3,
+	}
+
+	rl.DrawLineV(
+		{
+			game.bakery_dropdown.rec.x + 5 + 13,
+			game.bakery_dropdown.rec.y + 5 + 21,
+		},
+		line_end_pos,
+		rl.BLACK,
+	)
+	rl.DrawLineV(
+		{
+			game.bakery_dropdown.rec.x + 7 + 11,
+			game.bakery_dropdown.rec.y + 10 + 42 + 26,
+		},
+		line_end_pos,
+		rl.BLACK,
+	)
+	rl.DrawLineV(
+		{
+			game.bakery_dropdown.rec.x + 4 + 17,
+			game.bakery_dropdown.rec.y + 15 + 99 + 16,
+		},
+		line_end_pos,
+		rl.BLACK,
+	)
+
+	rl.DrawTexturePro(
+		game.spritesheet,
+		game.flour_img_src_rec,
+		{
+			game.bakery_dropdown.rec.x + 5,
+			game.bakery_dropdown.rec.y + 5,
+			26,
+			42,
+		},
+		{0, 0},
+		0,
+		rl.WHITE,
+	)
 	rl.DrawTexturePro(
 		game.spritesheet,
 		game.milk_img_src_rec,
-		{game.bakery_dropdown.rec.x, game.bakery_dropdown.rec.y, 11, 26},
+		{
+			game.bakery_dropdown.rec.x + 7,
+			game.bakery_dropdown.rec.y + 10 + 42,
+			22,
+			52,
+		},
+		{0, 0},
+		0,
+		rl.WHITE,
+	)
+	rl.DrawTexturePro(
+		game.spritesheet,
+		game.eggs_img_src_rec,
+		{
+			game.bakery_dropdown.rec.x + 4,
+			game.bakery_dropdown.rec.y + 15 + 99,
+			34,
+			32,
+		},
+		{0, 0},
+		0,
+		rl.WHITE,
+	)
+	rl.DrawTexturePro(
+		game.spritesheet,
+		game.cake_img_src_rec,
+		{
+			game.bakery_dropdown.rec.x +
+			game.bakery_dropdown.rec.width -
+			38 -
+			5,
+			game.bakery_dropdown.rec.y + (150 / 2) - 18,
+			38,
+			36,
+		},
 		{0, 0},
 		0,
 		rl.WHITE,
@@ -67,17 +143,17 @@ draw_bakery_production :: proc() {
 draw_mill_production :: proc() {
 	rl.DrawRectangleRec(game.mill_dropdown.rec, rl.LIGHTGRAY)
 	rl.DrawLineV(
-		{game.mill_dropdown.rec.x, game.mill_dropdown.rec.y + 20},
+		{game.mill_dropdown.rec.x + 17, game.mill_dropdown.rec.y + 24},
 		{
 			game.mill_dropdown.rec.x + game.mill_dropdown.rec.width - 26,
-			game.mill_dropdown.rec.y + 20,
+			game.mill_dropdown.rec.y + 24,
 		},
 		rl.DARKGRAY,
 	)
 	rl.DrawTexturePro(
 		game.spritesheet,
 		game.wheat_img_src_rec,
-		{game.mill_dropdown.rec.x, game.mill_dropdown.rec.y, 34, 44},
+		{game.mill_dropdown.rec.x + 5, game.mill_dropdown.rec.y + 5, 34, 44},
 		{0, 0},
 		0,
 		rl.WHITE,
@@ -86,8 +162,8 @@ draw_mill_production :: proc() {
 		game.spritesheet,
 		game.flour_img_src_rec,
 		{
-			game.mill_dropdown.rec.x + game.mill_dropdown.rec.width - 26,
-			game.mill_dropdown.rec.y,
+			game.mill_dropdown.rec.x + game.mill_dropdown.rec.width - 26 - 5,
+			game.mill_dropdown.rec.y + 5,
 			26,
 			42,
 		},
@@ -322,7 +398,6 @@ draw :: proc() {
 	draw_tiles(&game.tile_arr)
 
 	draw_dropdown(&game.dropdown)
-	// draw_production(&game.mill_dropdown)
 
 	if game.mill_dropdown.show {
 		draw_mill_production()
@@ -535,7 +610,7 @@ game_init :: proc() {
 	}
 
 	bakery_dropdown_button: Dropdown_Button = {
-		{0, 0, 32, 32},
+		{0, 0, 64, 64},
 		.Normal,
 		rl.LIGHTGRAY,
 		rl.BLACK,
@@ -550,14 +625,14 @@ game_init :: proc() {
 	init_production(
 		&game.mill_dropdown,
 		0,
-		{0, 0, 150, 105},
+		{0, 0, 150, 125},
 		mill_dropdown_button,
 	)
 
 	init_production(
 		&game.bakery_dropdown,
 		1,
-		{0, 0, 150, 105},
+		{0, 0, 150, 220},
 		bakery_dropdown_button,
 	)
 
@@ -615,7 +690,8 @@ show_mill_production :: proc(point: rl.Vector2) {
 	game.mill_dropdown.button.rec.y =
 		point.y +
 		game.mill_dropdown.rec.height -
-		game.mill_dropdown.button.rec.height
+		game.mill_dropdown.button.rec.height -
+		5
 }
 
 show_bakery_production :: proc(point: rl.Vector2) {
@@ -623,8 +699,15 @@ show_bakery_production :: proc(point: rl.Vector2) {
 	game.bakery_dropdown.show = true
 	game.bakery_dropdown.rec.x = point.x
 	game.bakery_dropdown.rec.y = point.y
-	game.bakery_dropdown.button.rec.x = point.x
-	game.bakery_dropdown.button.rec.y = point.y
+	game.bakery_dropdown.button.rec.x =
+		point.x +
+		(game.bakery_dropdown.rec.width / 2) -
+		(game.bakery_dropdown.button.rec.width / 2)
+	game.bakery_dropdown.button.rec.y =
+		point.y +
+		game.bakery_dropdown.rec.height -
+		game.bakery_dropdown.button.rec.height -
+		5
 }
 
 show_dropdown :: proc(point: rl.Vector2, tile_id: int) {
