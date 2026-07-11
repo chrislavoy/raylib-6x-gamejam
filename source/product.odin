@@ -1,5 +1,6 @@
 package game
 
+import "core:math"
 import rl "vendor:raylib"
 
 Product_Type :: enum {
@@ -15,6 +16,7 @@ Product :: struct {
 	type:      Product_Type,
 	src_rec:   rl.Rectangle,
 	dst_rec:   rl.Rectangle,
+	origin:    rl.Vector2,
 	start_pos: rl.Vector2,
 	tgt_pos:   rl.Vector2,
 	speed:     f32,
@@ -64,6 +66,11 @@ change_product_type :: proc(product: ^Product, type: Industry_Type) {
 
 	product.dst_rec.width = product.src_rec.width
 	product.dst_rec.height = product.src_rec.height
+
+	product.origin = {
+		math.round(product.src_rec.width / 2),
+		math.round(product.src_rec.height / 2),
+	}
 }
 
 update_product :: proc(product: ^Product) {
@@ -99,7 +106,7 @@ draw_product :: proc(product: ^Product) {
 			game.spritesheet,
 			product.src_rec,
 			product.dst_rec,
-			{product.src_rec.width / 2, product.src_rec.height / 2},
+			product.origin,
 			0,
 			rl.WHITE,
 		)
