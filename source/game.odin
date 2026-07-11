@@ -477,19 +477,18 @@ game_init :: proc() {
 	game.bakery_dropdown.show = false
 	game.mill_dropdown.show = false
 
-	img_arr: [10]rl.Rectangle = {
-		get_sprite_rec_by_name("WheatImg"),
-		get_sprite_rec_by_name("WheatImg_Clicked"),
-		get_sprite_rec_by_name("MilkImg"),
-		get_sprite_rec_by_name("MilkImg_Clicked"),
-		get_sprite_rec_by_name("EggsImg"),
-		get_sprite_rec_by_name("EggsImg_Clicked"),
-		get_sprite_rec_by_name("FlourImg"),
-		get_sprite_rec_by_name("FlourImg_Clicked"),
-		get_sprite_rec_by_name("CakeImg"),
-		get_sprite_rec_by_name("CakeImg_Clicked"),
-	}
-
+	// img_arr: [10]rl.Rectangle = {
+	// 	get_sprite_rec_by_name("WheatImg"),
+	// 	get_sprite_rec_by_name("WheatImg_Clicked"),
+	// 	get_sprite_rec_by_name("MilkImg"),
+	// 	get_sprite_rec_by_name("MilkImg_Clicked"),
+	// 	get_sprite_rec_by_name("EggsImg"),
+	// 	get_sprite_rec_by_name("EggsImg_Clicked"),
+	// 	get_sprite_rec_by_name("FlourImg"),
+	// 	get_sprite_rec_by_name("FlourImg_Clicked"),
+	// 	get_sprite_rec_by_name("CakeImg"),
+	// 	get_sprite_rec_by_name("CakeImg_Clicked"),
+	// }
 
 	positions := get_ui_button_initial_positions()
 
@@ -555,6 +554,10 @@ game_init :: proc() {
 
 	game.money = STARTING_MONEY
 
+	wheat_icon_rec := get_sprite_rec_by_name("Wheat_Icon")
+	eggs_icon_rec := get_sprite_rec_by_name("Eggs_Icon")
+	milk_icon_rec := get_sprite_rec_by_name("Milk_Icon")
+
 	dropdown_btns: [4]Dropdown_Button = {
 		{
 			{0, 0, 0, 0},
@@ -563,8 +566,8 @@ game_init :: proc() {
 			rl.BLACK,
 			.Wheat,
 			"Wheat 5",
-			img_arr[0],
-			{0, 0, 32, 32},
+			wheat_icon_rec,
+			{0, 0, wheat_icon_rec.width, wheat_icon_rec.height},
 		},
 		{
 			{0, 0, 0, 0},
@@ -573,8 +576,8 @@ game_init :: proc() {
 			rl.BLACK,
 			.Chicken,
 			"Chicken 10",
-			img_arr[4],
-			{0, 0, 32, 32},
+			eggs_icon_rec,
+			{0, 0, eggs_icon_rec.width, eggs_icon_rec.height},
 		},
 		{
 			{0, 0, 0, 0},
@@ -583,8 +586,8 @@ game_init :: proc() {
 			rl.BLACK,
 			.Cow,
 			"Cow 15",
-			img_arr[2],
-			{0, 0, 32, 32},
+			milk_icon_rec,
+			{0, 0, milk_icon_rec.width, milk_icon_rec.height},
 		},
 		{
 			{0, 0, 0, 0},
@@ -605,7 +608,7 @@ game_init :: proc() {
 		rl.BLACK,
 		.Mill,
 		"Mill Flour",
-		img_arr[6],
+		get_sprite_rec_by_name("FlourImg"),
 		{0, 0, 32, 32},
 	}
 
@@ -616,7 +619,7 @@ game_init :: proc() {
 		rl.BLACK,
 		.Bakery,
 		"Bake Cake",
-		img_arr[8],
+		get_sprite_rec_by_name("CakeImg"),
 		{0, 0, 32, 32},
 	}
 
@@ -735,11 +738,12 @@ show_dropdown :: proc(point: rl.Vector2, tile_id: int) {
 		game.dropdown.buttons[i].img_dst_rec.x =
 			game.dropdown.buttons[i].rec.x +
 			game.dropdown.buttons[i].rec.width -
-			35
+			game.dropdown.buttons[i].img_src_rec.width -
+			5
 		game.dropdown.buttons[i].img_dst_rec.y =
 			game.dropdown.buttons[i].rec.y +
-			game.dropdown.buttons[i].rec.height -
-			39
+			(game.dropdown.buttons[i].rec.height / 2) -
+			(game.dropdown.buttons[i].img_src_rec.height / 2)
 		if game.money >= game.ind_arr[game.dropdown.buttons[i].type].cost {
 			game.dropdown.buttons[i].state = .Normal
 			game.dropdown.buttons[i].text_color = rl.BLACK
