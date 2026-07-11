@@ -248,24 +248,30 @@ game: Game
 
 update :: proc() {
 	fs: Frame_State
+	input_pos: rl.Vector2
 
-	mousepoint := rl.GetTouchPosition(0)
+	if rl.GetTouchPointCount() > 0 {
+		input_pos = rl.GetTouchPosition(0)
+	} else {
+		input_pos = rl.GetMousePosition()
+	}
 
 	for i in 0 ..< BUTTON_ARR_COUNT {
-		if rl.CheckCollisionPointRec(mousepoint, game.button_arr[i].rec) {
+		if rl.CheckCollisionPointRec(input_pos, game.button_arr[i].rec) {
 			fs.mouse_over_button = true
 			fs.button = &game.button_arr[i]
 		}
 	}
 
-	update_tiles(&game.tile_arr, mousepoint, &fs)
+	update_tiles(&game.tile_arr, input_pos, &fs)
 
-	update_dropdown(&game.dropdown, mousepoint, &fs)
-	update_production(&game.mill_dropdown, mousepoint, &fs)
-	update_production(&game.bakery_dropdown, mousepoint, &fs)
+	update_dropdown(&game.dropdown, input_pos, &fs)
+	update_production(&game.mill_dropdown, input_pos, &fs)
+	update_production(&game.bakery_dropdown, input_pos, &fs)
 
 	// Handle Input
-	if rl.IsMouseButtonPressed(.LEFT) {
+	if rl.GetTouchPointCount() > 0 ||
+	   (rl.GetTouchPointCount() == 0 && rl.IsMouseButtonPressed(.LEFT)) {
 		if game.dropdown_open {
 			if fs.mouse_over_production {
 				if fs.mouse_over_production_button {
@@ -293,9 +299,9 @@ update :: proc() {
 		if fs.mouse_over_tile {
 			switch fs.tile.industry.type {
 			case .Mill:
-				show_mill_production(mousepoint)
+				show_mill_production(input_pos)
 			case .Bakery:
-				show_bakery_production(mousepoint)
+				show_bakery_production(input_pos)
 			case .Unclaimed,
 			     .Empty,
 			     .Wheat,
@@ -304,7 +310,7 @@ update :: proc() {
 			     .Farmhouse,
 			     .Storehouse,
 			     .ForSale:
-				show_dropdown(mousepoint, fs.tile.id)
+				show_dropdown(input_pos, fs.tile.id)
 			}
 		}
 
