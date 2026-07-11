@@ -37,6 +37,7 @@ Tile :: struct {
 	show_progress_bar: bool,
 	progress_bar:      Progress_Bar,
 	product:           Product,
+	producing:         bool,
 }
 
 get_initial_tile_positions :: proc() -> [TILE_ARR_COUNT]rl.Rectangle {
@@ -150,11 +151,9 @@ update_tiles :: proc(
 			}
 		}
 
-		if tile.industry.type != .Empty && tile.show_progress_bar {
+		if tile.producing {
 			tile.industry.growth +=
 				tile.industry.growth_rate * rl.GetFrameTime()
-
-			update_progress_bar(&tile.progress_bar, tile.industry.growth)
 
 			if tile.industry.growth >= tile.industry.max_growth {
 				tile.industry.growth = 0
@@ -168,12 +167,18 @@ update_tiles :: proc(
 					game.egg_count += tile.industry.produced
 				case .Mill:
 					game.flour_count += tile.industry.produced
+					start_production(&tile)
 				case .Bakery:
 					game.cake_count += tile.industry.produced
+					start_production(&tile)
 				}
 
 				start_product_animation(&tile.product)
 			}
+
+			update_progress_bar(&tile.progress_bar, tile.industry.growth)
+		} else if !tile.producing && tile.show_progress_bar {
+			start_production(&tile)
 		}
 
 		update_product(&tile.product)
@@ -219,10 +224,46 @@ change_tile_industry :: proc(tile: ^Tile, industry: Industry) {
 	   industry.type == .Chicken ||
 	   industry.type == .Cow {
 		tile.show_progress_bar = true
+		tile.producing = true
 	} else {
 		tile.show_progress_bar = false
+		tile.producing = false
 	}
 
 	init_progress_bar(&tile.progress_bar, tile.rec, industry.max_growth)
 	change_product_type(&tile.product, industry.type)
+}
+
+start_production :: proc(tile: ^Tile) {
+	tile.show_progress_bar = true
+
+	if tile.industry.type == .Mill {
+		if tile.industry.growth > 0 {
+			tile.producing = true
+		} else if tile.industry.growth == 0 && game.wheat_count > 0 {
+			tile.producing = true
+			game.wheat_count -= 1
+		} else {
+			tile.producing = false
+		}
+	} else if tile.industry.type == .Bakery {
+		if tile.industry.growth > 0 {
+			tile.producing = true
+		} else if tile.industry.growth == 0 &&
+		   game.flour_count > 0 &&
+		   game.milk_count > 0 &&
+		   game.egg_count > 0 {
+			tile.producing = true
+			game.flour_count -= 1
+			game.milk_count -= 1
+			game.egg_count -= 1
+		} else {
+			tile.producing = false
+		}
+	}
+}
+
+stop_production :: proc(tile: ^Tile) {
+	tile.show_progress_bar = false
+	tile.producing = false
 }

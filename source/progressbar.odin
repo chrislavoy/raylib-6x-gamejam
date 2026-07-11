@@ -36,6 +36,15 @@ update_progress_bar :: proc(bar: ^Progress_Bar, val: f32) {
 }
 
 draw_progress_bar :: proc(bar: ^Progress_Bar) {
+	rl.DrawRectangleRec(
+		{
+			bar.outer_rec.x - 2,
+			bar.outer_rec.y - 2,
+			bar.outer_rec.width + 4,
+			bar.outer_rec.height + 4,
+		},
+		rl.BLACK,
+	)
 	rl.DrawRectangleRec(bar.outer_rec, bar.outer_col)
 	rl.DrawRectangleRec(bar.inner_rec, bar.inner_col)
 }
