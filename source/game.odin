@@ -249,7 +249,7 @@ game: Game
 update :: proc() {
 	fs: Frame_State
 
-	mousepoint := rl.GetMousePosition()
+	mousepoint := rl.GetTouchPosition(0)
 
 	for i in 0 ..< BUTTON_ARR_COUNT {
 		if rl.CheckCollisionPointRec(mousepoint, game.button_arr[i].rec) {
