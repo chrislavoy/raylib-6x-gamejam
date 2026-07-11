@@ -135,7 +135,7 @@ handle_input :: proc(fs: ^Frame_State) {
 
 				if amount > 0 {
 					game.wheat_count -= amount
-					game.money += amount * 2
+					game.money += amount * 1
 				}
 			case .Sell_Eggs:
 				amount := min(game.egg_count, sell_amount)
@@ -157,7 +157,7 @@ handle_input :: proc(fs: ^Frame_State) {
 
 				if amount > 0 {
 					game.milk_count -= amount
-					game.money += amount * 3
+					game.money += amount * 5
 				}
 			case .Sell_Flour:
 				amount := min(game.flour_count, sell_amount)
@@ -168,7 +168,7 @@ handle_input :: proc(fs: ^Frame_State) {
 
 				if amount > 0 {
 					game.flour_count -= amount
-					game.money += amount * 4
+					game.money += amount * 2
 				}
 			case .Sell_Cake:
 				amount := min(game.cake_count, sell_amount)
@@ -179,7 +179,7 @@ handle_input :: proc(fs: ^Frame_State) {
 
 				if amount > 0 {
 					game.cake_count -= amount
-					game.money += amount * 35
+					game.money += amount * 15
 				}
 			}
 		}
@@ -294,10 +294,10 @@ game_init :: proc() {
 		{.Unclaimed, get_sprite_rec_by_name("Unclaimed"), 0, 0, 0, 0, 0},
 		{.Empty, get_sprite_rec_by_name("Empty"), 0, 0, 0, 0, 0},
 		{.Wheat, get_sprite_rec_by_name("Wheat"), 1, 20, 0, 1, 5},
-		{.Cow, get_sprite_rec_by_name("Cows"), 1, 40, 0, 1, 15},
-		{.Chicken, get_sprite_rec_by_name("Chickens"), 1, 30, 0, 3, 10},
+		{.Cow, get_sprite_rec_by_name("Cows"), 1, 25, 0, 1, 15},
+		{.Chicken, get_sprite_rec_by_name("Chickens"), 1, 20, 0, 3, 10},
 		{.Farmhouse, get_sprite_rec_by_name("Farmhouse"), 0, 0, 0, 0, 0},
-		{.Mill, get_sprite_rec_by_name("Mill"), 1, 45, 0, 1, 100},
+		{.Mill, get_sprite_rec_by_name("Mill"), 1, 20, 0, 1, 100},
 		{.Bakery, get_sprite_rec_by_name("Bakery"), 1, 60, 0, 1, 500},
 		{.Storehouse, get_sprite_rec_by_name("Storehouse"), 0, 0, 0, 0, 250},
 		{.ForSale, get_sprite_rec_by_name("ForSale"), 0, 0, 0, 0, 50},
