@@ -74,6 +74,7 @@ Game :: struct {
 	mill_dropdown:   Production,
 	bakery_dropdown: Production,
 	dropdown_open:   bool,
+	collect_sound:   rl.Sound,
 }
 
 Button_State :: enum {
@@ -323,6 +324,7 @@ get_ui_button_initial_positions :: proc() -> [BUTTON_ARR_COUNT]rl.Rectangle {
 game_init :: proc() {
 	// Button_Sound = rl.LoadSound() // Button Sound
 	// Button_Texture = rl.LoadTexture() // Button Texture
+	game.collect_sound = rl.LoadSound("assets\\collect.wav")
 
 	mill_dropdown_buttons: [2]Dropdown_Button = {
 		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Empty, "Mill Flour"},
@@ -457,7 +459,8 @@ game_should_run :: proc() -> bool {
 
 @(export)
 game_shutdown :: proc() {
-	defer rl.UnloadTexture(game.spritesheet)
+	rl.UnloadTexture(game.spritesheet)
+	rl.UnloadSound(game.collect_sound)
 }
 
 @(export)

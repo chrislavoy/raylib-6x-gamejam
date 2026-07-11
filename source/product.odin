@@ -122,6 +122,7 @@ start_product_animation :: proc(product: ^Product) {
 
 end_product_animation :: proc(product: ^Product) {
 	product.show = false
+	rl.PlaySound(game.collect_sound)
 }
 
 // C1 :: 1.70158
