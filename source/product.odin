@@ -23,6 +23,7 @@ Product :: struct {
 	show:      bool,
 	time:      f32,
 	tgt_time:  f32,
+	count:     u32,
 }
 
 init_product :: proc(
@@ -71,6 +72,8 @@ change_product_type :: proc(product: ^Product, type: Industry_Type) {
 		math.round(product.src_rec.width / 2),
 		math.round(product.src_rec.height / 2),
 	}
+
+	product.count = game.ind_arr[type].produced
 }
 
 update_product :: proc(product: ^Product) {
@@ -122,5 +125,23 @@ start_product_animation :: proc(product: ^Product) {
 
 end_product_animation :: proc(product: ^Product) {
 	product.show = false
-	rl.PlaySound(game.collect_sound)
+
+	// Play collection sound
+	#partial switch product.type {
+	case .Wheat:
+		rl.PlaySound(game.collect_sound)
+		game.wheat_count += product.count
+	case .Eggs:
+		rl.PlaySound(game.collect_sound)
+		game.egg_count += product.count
+	case .Milk:
+		rl.PlaySound(game.collect_sound)
+		game.milk_count += product.count
+	case .Flour:
+		rl.PlaySound(game.collect_sound)
+		game.flour_count += product.count
+	case .Cake:
+		rl.PlaySound(game.collect_sound)
+		game.cake_count += product.count
+	}
 }

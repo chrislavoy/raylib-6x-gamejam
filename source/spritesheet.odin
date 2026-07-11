@@ -37,7 +37,7 @@ sprite_ref := [35]Spritesheet_Reference {
 	{"SellCake", {512, 320, 32, 32}},
 	{"SellCake_Clicked", {544, 320, 32, 32}},
 	{"CakeImg", {288, 352, 32, 32}},
-	{"CakeIMg_Clicked", {320, 352, 32, 32}},
+	{"CakeImg_Clicked", {320, 352, 32, 32}},
 	{"Wheat_Icon", {352, 352, 17, 22}},
 	{"Cake_Icon", {369, 352, 19, 18}},
 	{"Milk_Icon", {388, 352, 11, 26}},

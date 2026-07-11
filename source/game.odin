@@ -8,189 +8,6 @@ BUTTON_ARR_COUNT :: 5
 MILL_TILE_ID :: 4
 BAKERY_TILE_ID :: 6
 
-Button_ID :: enum int {
-	Sell_Wheat,
-	Sell_Eggs,
-	Sell_Milk,
-	Sell_Flour,
-	Sell_Cake,
-}
-
-Production :: struct {
-	id:     int,
-	show:   bool,
-	rec:    rl.Rectangle,
-	button: Dropdown_Button,
-}
-
-update_production :: proc(
-	production: ^Production,
-	mousepoint: rl.Vector2,
-	fs: ^Frame_State,
-) {
-	if !production.show {
-		return
-	}
-
-	if rl.CheckCollisionPointRec(mousepoint, production.rec) {
-		fs.mouse_over_production = true
-		fs.production = production
-
-		if rl.CheckCollisionPointRec(mousepoint, production.button.rec) {
-			fs.mouse_over_production_button = true
-			fs.production_button = &production.button
-		}
-	}
-}
-
-draw_bakery_production :: proc() {
-	rl.DrawRectangleRec(game.bakery_dropdown.rec, rl.LIGHTGRAY)
-	line_end_pos: rl.Vector2 = {
-		game.bakery_dropdown.rec.x + game.bakery_dropdown.rec.width - 19 - 5,
-		game.bakery_dropdown.rec.y + (150 / 2) + 3,
-	}
-
-	rl.DrawLineV(
-		{
-			game.bakery_dropdown.rec.x + 5 + 13,
-			game.bakery_dropdown.rec.y + 5 + 21,
-		},
-		line_end_pos,
-		rl.BLACK,
-	)
-	rl.DrawLineV(
-		{
-			game.bakery_dropdown.rec.x + 7 + 11,
-			game.bakery_dropdown.rec.y + 10 + 42 + 26,
-		},
-		line_end_pos,
-		rl.BLACK,
-	)
-	rl.DrawLineV(
-		{
-			game.bakery_dropdown.rec.x + 4 + 17,
-			game.bakery_dropdown.rec.y + 15 + 99 + 16,
-		},
-		line_end_pos,
-		rl.BLACK,
-	)
-
-	rl.DrawTexturePro(
-		game.spritesheet,
-		game.flour_img_src_rec,
-		{
-			game.bakery_dropdown.rec.x + 5,
-			game.bakery_dropdown.rec.y + 5,
-			26,
-			42,
-		},
-		{0, 0},
-		0,
-		rl.WHITE,
-	)
-	rl.DrawTexturePro(
-		game.spritesheet,
-		game.milk_img_src_rec,
-		{
-			game.bakery_dropdown.rec.x + 7,
-			game.bakery_dropdown.rec.y + 10 + 42,
-			22,
-			52,
-		},
-		{0, 0},
-		0,
-		rl.WHITE,
-	)
-	rl.DrawTexturePro(
-		game.spritesheet,
-		game.eggs_img_src_rec,
-		{
-			game.bakery_dropdown.rec.x + 4,
-			game.bakery_dropdown.rec.y + 15 + 99,
-			34,
-			32,
-		},
-		{0, 0},
-		0,
-		rl.WHITE,
-	)
-	rl.DrawTexturePro(
-		game.spritesheet,
-		game.cake_img_src_rec,
-		{
-			game.bakery_dropdown.rec.x +
-			game.bakery_dropdown.rec.width -
-			38 -
-			5,
-			game.bakery_dropdown.rec.y + (150 / 2) - 18,
-			38,
-			36,
-		},
-		{0, 0},
-		0,
-		rl.WHITE,
-	)
-	rl.DrawTexturePro(
-		game.spritesheet,
-		game.bakery_dropdown.button.img_src_rec,
-		game.bakery_dropdown.button.rec,
-		{0, 0},
-		0,
-		rl.WHITE,
-	)
-}
-
-draw_mill_production :: proc() {
-	rl.DrawRectangleRec(game.mill_dropdown.rec, rl.LIGHTGRAY)
-	rl.DrawLineV(
-		{game.mill_dropdown.rec.x + 17, game.mill_dropdown.rec.y + 24},
-		{
-			game.mill_dropdown.rec.x + game.mill_dropdown.rec.width - 26,
-			game.mill_dropdown.rec.y + 24,
-		},
-		rl.DARKGRAY,
-	)
-	rl.DrawTexturePro(
-		game.spritesheet,
-		game.wheat_img_src_rec,
-		{game.mill_dropdown.rec.x + 5, game.mill_dropdown.rec.y + 5, 34, 44},
-		{0, 0},
-		0,
-		rl.WHITE,
-	)
-	rl.DrawTexturePro(
-		game.spritesheet,
-		game.flour_img_src_rec,
-		{
-			game.mill_dropdown.rec.x + game.mill_dropdown.rec.width - 26 - 5,
-			game.mill_dropdown.rec.y + 5,
-			26,
-			42,
-		},
-		{0, 0},
-		0,
-		rl.WHITE,
-	)
-	rl.DrawTexturePro(
-		game.spritesheet,
-		game.mill_dropdown.button.img_src_rec,
-		game.mill_dropdown.button.rec,
-		{0, 0},
-		0,
-		rl.WHITE,
-	)
-}
-
-init_production :: proc(
-	dropdown: ^Production,
-	id: int,
-	rec: rl.Rectangle,
-	button: Dropdown_Button,
-) {
-	dropdown.rec = rec
-	dropdown.button = button
-}
-
 Game :: struct {
 	wheat_count:       u32,
 	milk_count:        u32,
@@ -215,21 +32,6 @@ Game :: struct {
 	music:             rl.Music,
 }
 
-Button_State :: enum {
-	Normal,
-	Hovered,
-	Clicked,
-	Disabled,
-}
-
-Button :: struct {
-	id:    Button_ID,
-	rec:   rl.Rectangle,
-	src:   rl.Rectangle,
-	state: Button_State,
-	tint:  rl.Color,
-}
-
 Frame_State :: struct {
 	mouse_over_tile:              bool,
 	tile:                         ^Tile,
@@ -243,6 +45,7 @@ Frame_State :: struct {
 	production:                   ^Production,
 	mouse_over_production_button: bool,
 	production_button:            ^Dropdown_Button,
+	input_pos:                    rl.Vector2,
 }
 
 game: Game
@@ -250,34 +53,32 @@ game: Game
 update :: proc() {
 	rl.UpdateMusicStream(game.music)
 	fs: Frame_State
-	input_pos: rl.Vector2
 
 	if rl.GetTouchPointCount() > 0 {
-		input_pos = rl.GetTouchPosition(0)
+		fs.input_pos = rl.GetTouchPosition(0)
 	} else {
-		input_pos = rl.GetMousePosition()
+		fs.input_pos = rl.GetMousePosition()
 	}
 
-	for i in 0 ..< BUTTON_ARR_COUNT {
-		if rl.CheckCollisionPointRec(input_pos, game.button_arr[i].rec) {
-			fs.mouse_over_button = true
-			fs.button = &game.button_arr[i]
-		}
-	}
-
-	update_tiles(&game.tile_arr, input_pos, &fs)
-
-	update_dropdown(&game.dropdown, input_pos, &fs)
-	update_production(&game.mill_dropdown, input_pos, &fs)
-	update_production(&game.bakery_dropdown, input_pos, &fs)
+	update_buttons(&fs)
+	update_tiles(&game.tile_arr, &fs)
+	update_dropdown(&game.dropdown, &fs)
+	update_production(&game.mill_dropdown, &fs)
+	update_production(&game.bakery_dropdown, &fs)
 
 	// Handle Input
-	if rl.GetTouchPointCount() > 0 ||
+	handle_input(&fs)
+}
+
+
+handle_input :: proc(fs: ^Frame_State) {
+	if (rl.GetTouchPointCount() > 0 && rl.IsGestureDetected(.TAP)) ||
 	   (rl.GetTouchPointCount() == 0 && rl.IsMouseButtonPressed(.LEFT)) {
 		if game.dropdown_open {
 			if fs.mouse_over_production {
 				if fs.mouse_over_production_button {
 					toggle_industry(fs.production_button.type)
+					// hide_dropdowns()
 				}
 			} else if fs.mouse_over_dropdown {
 				if fs.mouse_over_dropdown_button {
@@ -285,14 +86,10 @@ update :: proc() {
 						game.dropdown.tile_id,
 						fs.dropdown_button.type,
 					)
-					hide_dropdown()
+					hide_dropdowns()
 				}
 			} else {
-				hide_dropdown()
-				game.dropdown.show = false
-				game.mill_dropdown.show = false
-				game.bakery_dropdown.show = false
-				game.dropdown_open = false
+				hide_dropdowns()
 			}
 
 			return
@@ -301,9 +98,9 @@ update :: proc() {
 		if fs.mouse_over_tile {
 			switch fs.tile.industry.type {
 			case .Mill:
-				show_mill_production(input_pos)
+				show_mill_production(fs.input_pos)
 			case .Bakery:
-				show_bakery_production(input_pos)
+				show_bakery_production(fs.input_pos)
 			case .Unclaimed,
 			     .Empty,
 			     .Wheat,
@@ -312,7 +109,7 @@ update :: proc() {
 			     .Farmhouse,
 			     .Storehouse,
 			     .ForSale:
-				show_dropdown(input_pos, fs.tile.id)
+				show_dropdown(fs.input_pos, fs.tile.id)
 			}
 		}
 
@@ -324,6 +121,8 @@ update :: proc() {
 			} else if rl.IsKeyDown(.LEFT_SHIFT) || rl.IsKeyDown(.RIGHT_SHIFT) {
 				sell_amount = 10
 			}
+
+			fs.button.state = .Clicked
 
 			switch Button_ID(fs.button.id) {
 
@@ -392,16 +191,7 @@ draw :: proc() {
 	rl.ClearBackground(rl.Color({70, 130, 50, 255}))
 	rl.DrawRectangle(0, 0, 720, 115, rl.BROWN)
 
-	for button in game.button_arr {
-		rl.DrawTexturePro(
-			game.spritesheet,
-			button.src,
-			button.rec,
-			{0, 0},
-			0,
-			button.tint,
-		)
-	}
+	draw_buttons()
 
 	draw_tiles(&game.tile_arr)
 
@@ -470,10 +260,9 @@ get_ui_button_initial_positions :: proc() -> [BUTTON_ARR_COUNT]rl.Rectangle {
 		{275, 40, 32, 32}, //Cake
 	}
 }
+
 @(export)
 game_init :: proc() {
-	// Button_Sound = rl.LoadSound() // Button Sound
-	// Button_Texture = rl.LoadTexture() // Button Texture
 	game.collect_sound = rl.LoadSound("assets\\collect.wav")
 	game.music = rl.LoadMusicStream("assets\\music.mp3")
 	rl.PlayMusicStream(game.music)
@@ -487,55 +276,7 @@ game_init :: proc() {
 	game.bakery_dropdown.show = false
 	game.mill_dropdown.show = false
 
-	// img_arr: [10]rl.Rectangle = {
-	// 	get_sprite_rec_by_name("WheatImg"),
-	// 	get_sprite_rec_by_name("WheatImg_Clicked"),
-	// 	get_sprite_rec_by_name("MilkImg"),
-	// 	get_sprite_rec_by_name("MilkImg_Clicked"),
-	// 	get_sprite_rec_by_name("EggsImg"),
-	// 	get_sprite_rec_by_name("EggsImg_Clicked"),
-	// 	get_sprite_rec_by_name("FlourImg"),
-	// 	get_sprite_rec_by_name("FlourImg_Clicked"),
-	// 	get_sprite_rec_by_name("CakeImg"),
-	// 	get_sprite_rec_by_name("CakeImg_Clicked"),
-	// }
-
-	positions := get_ui_button_initial_positions()
-
-	game.button_arr[Button_ID.Sell_Wheat] = {
-		id   = .Sell_Wheat,
-		rec  = positions[Button_ID.Sell_Wheat],
-		src  = get_sprite_rec_by_name("SellWheat"),
-		tint = rl.WHITE,
-	}
-
-	game.button_arr[Button_ID.Sell_Eggs] = {
-		id   = .Sell_Eggs,
-		rec  = positions[Button_ID.Sell_Eggs],
-		src  = get_sprite_rec_by_name("SellEggs"),
-		tint = rl.WHITE,
-	}
-
-	game.button_arr[Button_ID.Sell_Milk] = {
-		id   = .Sell_Milk,
-		rec  = positions[Button_ID.Sell_Milk],
-		src  = get_sprite_rec_by_name("SellMilk"),
-		tint = rl.WHITE,
-	}
-
-	game.button_arr[Button_ID.Sell_Flour] = {
-		id   = .Sell_Flour,
-		rec  = positions[Button_ID.Sell_Flour],
-		src  = get_sprite_rec_by_name("SellFlour"),
-		tint = rl.WHITE,
-	}
-
-	game.button_arr[Button_ID.Sell_Cake] = {
-		id   = .Sell_Cake,
-		rec  = positions[Button_ID.Sell_Cake],
-		src  = get_sprite_rec_by_name("SellCake"),
-		tint = rl.WHITE,
-	}
+	init_sell_buttons()
 
 	for i := 0; i < len(game.tile_arr); i += 1 {
 		game.tile_arr[i].id = i
@@ -564,10 +305,6 @@ game_init :: proc() {
 
 	game.money = STARTING_MONEY
 
-	wheat_icon_rec := get_sprite_rec_by_name("Wheat_Icon")
-	eggs_icon_rec := get_sprite_rec_by_name("Eggs_Icon")
-	milk_icon_rec := get_sprite_rec_by_name("Milk_Icon")
-
 	dropdown_btns: [4]Dropdown_Button = {
 		{
 			{0, 0, 0, 0},
@@ -576,8 +313,13 @@ game_init :: proc() {
 			rl.BLACK,
 			.Wheat,
 			"Wheat 5",
-			wheat_icon_rec,
-			{0, 0, wheat_icon_rec.width, wheat_icon_rec.height},
+			game.wheat_img_src_rec,
+			{
+				0,
+				0,
+				game.wheat_img_src_rec.width,
+				game.wheat_img_src_rec.height,
+			},
 		},
 		{
 			{0, 0, 0, 0},
@@ -586,8 +328,8 @@ game_init :: proc() {
 			rl.BLACK,
 			.Chicken,
 			"Chicken 10",
-			eggs_icon_rec,
-			{0, 0, eggs_icon_rec.width, eggs_icon_rec.height},
+			game.eggs_img_src_rec,
+			{0, 0, game.eggs_img_src_rec.width, game.eggs_img_src_rec.height},
 		},
 		{
 			{0, 0, 0, 0},
@@ -596,8 +338,8 @@ game_init :: proc() {
 			rl.BLACK,
 			.Cow,
 			"Cow 15",
-			milk_icon_rec,
-			{0, 0, milk_icon_rec.width, milk_icon_rec.height},
+			game.milk_img_src_rec,
+			{0, 0, game.milk_img_src_rec.width, game.milk_img_src_rec.height},
 		},
 		{
 			{0, 0, 0, 0},
@@ -691,107 +433,8 @@ game_parent_window_size_changed :: proc(w, h: int) {
 	rl.SetWindowSize(i32(w), i32(h))
 }
 
-show_mill_production :: proc(point: rl.Vector2) {
-	game.dropdown_open = true
-	game.mill_dropdown.show = true
-	game.mill_dropdown.rec.x = point.x
-	game.mill_dropdown.rec.y = point.y
-	game.mill_dropdown.button.rec.x =
-		point.x +
-		(game.mill_dropdown.rec.width / 2) -
-		(game.mill_dropdown.button.rec.width / 2)
-	game.mill_dropdown.button.rec.y =
-		point.y +
-		game.mill_dropdown.rec.height -
-		game.mill_dropdown.button.rec.height -
-		5
-}
-
-show_bakery_production :: proc(point: rl.Vector2) {
-	game.dropdown_open = true
-	game.bakery_dropdown.show = true
-	game.bakery_dropdown.rec.x = point.x
-	game.bakery_dropdown.rec.y = point.y
-	game.bakery_dropdown.button.rec.x =
-		point.x +
-		(game.bakery_dropdown.rec.width / 2) -
-		(game.bakery_dropdown.button.rec.width / 2)
-	game.bakery_dropdown.button.rec.y =
-		point.y +
-		game.bakery_dropdown.rec.height -
-		game.bakery_dropdown.button.rec.height -
-		5
-}
-
-show_dropdown :: proc(point: rl.Vector2, tile_id: int) {
-	game.dropdown_open = true
-	game.dropdown.show = true
-	game.dropdown.tile_id = tile_id
-	game.dropdown.rec.x = point.x
-	game.dropdown.rec.y = point.y
-
-	if game.dropdown.rec.x + game.dropdown.rec.width > 720 {
-		game.dropdown.rec.x = 720 - game.dropdown.rec.width
-	}
-
-	if game.dropdown.rec.y + game.dropdown.rec.height > 720 {
-		game.dropdown.rec.y = 720 - game.dropdown.rec.height
-	}
-
-	for i := 0; i < len(game.dropdown.buttons); i += 1 {
-		game.dropdown.buttons[i].rec = {
-			game.dropdown.rec.x + 5,
-			game.dropdown.rec.y + (50 * cast(f32)i) + 5,
-			game.dropdown.rec.width - 10,
-			45,
-		}
-		game.dropdown.buttons[i].img_dst_rec.x =
-			game.dropdown.buttons[i].rec.x +
-			game.dropdown.buttons[i].rec.width -
-			game.dropdown.buttons[i].img_src_rec.width -
-			5
-		game.dropdown.buttons[i].img_dst_rec.y =
-			game.dropdown.buttons[i].rec.y +
-			(game.dropdown.buttons[i].rec.height / 2) -
-			(game.dropdown.buttons[i].img_src_rec.height / 2)
-		if game.money >= game.ind_arr[game.dropdown.buttons[i].type].cost {
-			game.dropdown.buttons[i].state = .Normal
-			game.dropdown.buttons[i].text_color = rl.BLACK
-		} else {
-			game.dropdown.buttons[i].state = .Disabled
-			game.dropdown.buttons[i].text_color = rl.GRAY
-		}
-	}
-}
-
-hide_dropdown :: proc() {
-	game.dropdown.show = false
-	game.dropdown_open = false
-}
-
 change_industry :: proc(i: int, ind_type: Industry_Type) {
 	game.money -= game.ind_arr[ind_type].cost
 
 	change_tile_industry(&game.tile_arr[i], game.ind_arr[ind_type])
-}
-
-toggle_industry :: proc(type: Industry_Type) {
-	#partial switch type {
-	case .Mill:
-		game.tile_arr[4].show_progress_bar =
-		!game.tile_arr[4].show_progress_bar
-		if game.tile_arr[4].show_progress_bar {
-			start_production(&game.tile_arr[4])
-		} else {
-			stop_production(&game.tile_arr[4])
-		}
-	case .Bakery:
-		game.tile_arr[6].show_progress_bar =
-		!game.tile_arr[6].show_progress_bar
-		if game.tile_arr[6].show_progress_bar {
-			start_production(&game.tile_arr[6])
-		} else {
-			stop_production(&game.tile_arr[6])
-		}
-	}
 }

@@ -127,11 +127,7 @@ init_tiles :: proc(tile_arr: ^[TILE_ARR_COUNT]Tile) {
 	change_tile_industry(&tile_arr[6], game.ind_arr[Industry_Type.Bakery])
 }
 
-update_tiles :: proc(
-	tiles: ^[TILE_ARR_COUNT]Tile,
-	mouse_pos: rl.Vector2,
-	fs: ^Frame_State,
-) {
+update_tiles :: proc(tiles: ^[TILE_ARR_COUNT]Tile, fs: ^Frame_State) {
 	for &tile in tiles {
 		if !tile.selectable {
 			continue
@@ -139,7 +135,7 @@ update_tiles :: proc(
 
 		if !game.dropdown.show {
 			if rl.CheckCollisionPointPoly(
-				mouse_pos,
+				fs.input_pos,
 				raw_data(&tile.collider),
 				8,
 			) {
@@ -158,18 +154,9 @@ update_tiles :: proc(
 			if tile.industry.growth >= tile.industry.max_growth {
 				tile.industry.growth = 0
 
-				#partial switch tile.industry.type {
-				case .Wheat:
-					game.wheat_count += tile.industry.produced
-				case .Cow:
-					game.milk_count += tile.industry.produced
-				case .Chicken:
-					game.egg_count += tile.industry.produced
-				case .Mill:
-					game.flour_count += tile.industry.produced
-					start_production(&tile)
-				case .Bakery:
-					game.cake_count += tile.industry.produced
+				if tile.industry.type == .Mill ||
+				   tile.industry.type == .Bakery {
+
 					start_production(&tile)
 				}
 
@@ -266,4 +253,37 @@ start_production :: proc(tile: ^Tile) {
 stop_production :: proc(tile: ^Tile) {
 	tile.show_progress_bar = false
 	tile.producing = false
+}
+
+toggle_industry :: proc(type: Industry_Type) {
+	#partial switch type {
+	case .Mill:
+		game.tile_arr[4].show_progress_bar =
+		!game.tile_arr[4].show_progress_bar
+		if game.tile_arr[4].show_progress_bar {
+			start_production(&game.tile_arr[4])
+			game.mill_dropdown.button.img_src_rec = get_sprite_rec_by_name(
+				"FlourImg_Clicked",
+			)
+		} else {
+			stop_production(&game.tile_arr[4])
+			game.mill_dropdown.button.img_src_rec = get_sprite_rec_by_name(
+				"FlourImg",
+			)
+		}
+	case .Bakery:
+		game.tile_arr[6].show_progress_bar =
+		!game.tile_arr[6].show_progress_bar
+		if game.tile_arr[6].show_progress_bar {
+			start_production(&game.tile_arr[6])
+			game.bakery_dropdown.button.img_src_rec = get_sprite_rec_by_name(
+				"CakeImg_Clicked",
+			)
+		} else {
+			stop_production(&game.tile_arr[6])
+			game.bakery_dropdown.button.img_src_rec = get_sprite_rec_by_name(
+				"CakeImg",
+			)
+		}
+	}
 }
