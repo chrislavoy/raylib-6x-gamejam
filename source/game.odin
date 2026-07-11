@@ -212,6 +212,7 @@ Game :: struct {
 	eggs_img_src_rec:  rl.Rectangle,
 	milk_img_src_rec:  rl.Rectangle,
 	cake_img_src_rec:  rl.Rectangle,
+	music:             rl.Music,
 }
 
 Button_State :: enum {
@@ -247,6 +248,7 @@ Frame_State :: struct {
 game: Game
 
 update :: proc() {
+	rl.UpdateMusicStream(game.music)
 	fs: Frame_State
 	input_pos: rl.Vector2
 
@@ -473,6 +475,8 @@ game_init :: proc() {
 	// Button_Sound = rl.LoadSound() // Button Sound
 	// Button_Texture = rl.LoadTexture() // Button Texture
 	game.collect_sound = rl.LoadSound("assets\\collect.wav")
+	game.music = rl.LoadMusicStream("assets\\music.mp3")
+	rl.PlayMusicStream(game.music)
 
 	game.wheat_img_src_rec = get_sprite_rec_by_name("Wheat_Icon")
 	game.flour_img_src_rec = get_sprite_rec_by_name("Flour_Icon")
