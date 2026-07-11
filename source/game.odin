@@ -5,7 +5,7 @@ import rl "vendor:raylib"
 STARTING_MONEY :: 10
 IND_ARR_COUNT :: 10
 BUTTON_ARR_COUNT :: 5
-MILL_TITLE_ID :: 4
+MILL_TILE_ID :: 4
 BAKERY_TILE_ID :: 6
 
 Button_ID :: enum int {
@@ -14,6 +14,54 @@ Button_ID :: enum int {
 	Sell_Milk,
 	Sell_Flour,
 	Sell_Cake,
+}
+
+Production :: struct {
+	show:    bool,
+	rec:     rl.Rectangle,
+	buttons: [2]Dropdown_Button,
+}
+
+update_production :: proc(
+	production: ^Production,
+	mousepoint : rl.Vector2,
+) {
+	if !production.show {
+		return
+	}
+
+	if rl.IsMouseButtonPressed(.LEFT) {
+		if !rl.CheckCollisionPointRec(
+			mousepoint,
+			production.rec,
+		) {
+			production.show = false
+		}
+	}
+}
+
+draw_production :: proc(
+	production: ^Production,
+) {
+	if !production.show {
+		return
+	}
+	rl.DrawRectangleRec(
+		production.rec,
+		rl.LIGHTGRAY,
+	)
+	for _ in production.buttons {
+
+	}
+}
+
+init_production :: proc(
+	dropdown: ^Production,
+	rec: rl.Rectangle,
+	buttons: [2]Dropdown_Button,
+) {
+	dropdown.rec = rec
+	dropdown.buttons = buttons
 }
 
 Game :: struct {
@@ -25,12 +73,12 @@ Game :: struct {
 	spritesheet:          rl.Texture,
 	tile_arr:             [TILE_ARR_COUNT]Tile,
 	ind_arr:              [IND_ARR_COUNT]Industry,
-	dropdown:             Dropwdown,
+	dropdown:             Dropdown,
 	money:                u32,
 	dropdown_just_opened: bool,
 	button_arr:           [BUTTON_ARR_COUNT]Button,
-	mill_dropdown:        Dropdown,
-	bakery_dropdown:      Dropdown,
+	mill_dropdown:        Production,
+	bakery_dropdown:      Production,
 }
 
 Button_State :: enum {
@@ -129,25 +177,27 @@ update :: proc() {
 		}
 	}
 
-	if rl.IsMouseButtonPressed(.LEFT){
+	if rl.IsMouseButtonPressed(.LEFT) {
 		if rl.CheckCollisionPointRec(
 			mousepoint,
-			game.tile_arr[MILL_TITLE_ID].rec,
+			game.tile_arr[MILL_TILE_ID].rec,
 		) {
-			show_mill_dropdown(mousepoint)
+			show_mill_production(mousepoint)
 		}
 
 		if rl.CheckCollisionPointRec(
 			mousepoint,
-			game.tile_arr[BAKERY_TITLE_ID].rec,
+			game.tile_arr[BAKERY_TILE_ID].rec,
 		) {
-			show_bakery_dropdown(mousepoint)
+			show_bakery_production(mousepoint)
 		}
-		
+
 	}
 	update_tiles(&game.tile_arr, mousepoint)
 
 	update_dropdown(&game.dropdown, mousepoint)
+	update_production(&game.mill_dropdown, mousepoint)
+	update_production(&game.bakery_dropdown, mousepoint)
 }
 
 draw :: proc() {
@@ -169,6 +219,8 @@ draw :: proc() {
 	draw_tiles(&game.tile_arr)
 
 	draw_dropdown(&game.dropdown)
+	draw_production(&game.mill_dropdown)
+	draw_production(&game.bakery_dropdown)
 
 	rl.DrawText(
 		rl.TextFormat("Wheat: %d", game.wheat_count),
@@ -232,13 +284,27 @@ game_init :: proc() {
 
 	mill_dropdown_buttons: [2]Dropdown_Button = {
 		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Empty, "Mill Flour"},
-		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Empty, "Mill 10 Flour"}
-}
+		{
+			{0, 0, 0, 0},
+			.Normal,
+			rl.LIGHTGRAY,
+			rl.BLACK,
+			.Empty,
+			"Mill 10 Flour",
+		},
+	}
 
 	bakery_dropdown_buttons: [2]Dropdown_Button = {
 		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Empty, "Bake Cake"},
-		{{0, 0, 0, 0}, .Normal, rl.LIGHTGRAY, rl.BLACK, .Empty, "Bake 10 Cakes"}
-}
+		{
+			{0, 0, 0, 0},
+			.Normal,
+			rl.LIGHTGRAY,
+			rl.BLACK,
+			.Empty,
+			"Bake 10 Cakes",
+		},
+	}
 	positions := get_ui_button_initial_positions()
 
 	game.button_arr[Button_ID.Sell_Wheat] = {
@@ -313,7 +379,16 @@ game_init :: proc() {
 	}
 	init_dropdown(&game.dropdown, {0, 0, 150, 205}, dropdown_btns)
 
-	init_dropdown(&game.mill_dropdown, 0, 0, 150, 105)
+	init_production(
+		&game.mill_dropdown,
+		{0, 0, 150, 105},
+		mill_dropdown_buttons,
+	)
+	init_production(
+		&game.bakery_dropdown,
+		{0, 0, 150, 105},
+		bakery_dropdown_buttons,
+	)
 
 	init_tiles(&game.tile_arr)
 	game.spritesheet = rl.LoadTexture("assets\\farm_spritesheet.png")
@@ -356,13 +431,13 @@ game_parent_window_size_changed :: proc(w, h: int) {
 	rl.SetWindowSize(i32(w), i32(h))
 }
 
-show_mill_dropdown :: proc(point: rl.Vector2) {
+show_mill_production :: proc(point: rl.Vector2) {
 	game.mill_dropdown.show = true
 	game.mill_dropdown.rec.x = point.x
 	game.mill_dropdown.rec.y = point.y
 }
 
-show_bakery_dropdown :: proc(point: rl.Vector2) {
+show_bakery_production :: proc(point: rl.Vector2) {
 	game.bakery_dropdown.show = true
 	game.bakery_dropdown.rec.x = point.x
 	game.bakery_dropdown.rec.y = point.y

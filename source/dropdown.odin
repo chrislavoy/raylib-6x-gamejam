@@ -11,7 +11,7 @@ Dropdown_Button :: struct {
 	text:       cstring,
 }
 
-Dropwdown :: struct {
+Dropdown :: struct {
 	rec:     rl.Rectangle,
 	buttons: [4]Dropdown_Button,
 	show:    bool,
@@ -19,7 +19,7 @@ Dropwdown :: struct {
 }
 
 init_dropdown :: proc(
-	dropdown: ^Dropwdown,
+	dropdown: ^Dropdown,
 	rec: rl.Rectangle,
 	buttons: [4]Dropdown_Button,
 ) {
@@ -28,7 +28,7 @@ init_dropdown :: proc(
 	dropdown.buttons = buttons
 }
 
-update_dropdown :: proc(dropdown: ^Dropwdown, mouse_pos: rl.Vector2) {
+update_dropdown :: proc(dropdown: ^Dropdown, mouse_pos: rl.Vector2) {
 	if game.dropdown.show {
 
 		if game.dropdown_just_opened {
@@ -53,7 +53,7 @@ update_dropdown :: proc(dropdown: ^Dropwdown, mouse_pos: rl.Vector2) {
 	}
 }
 
-draw_dropdown :: proc(dropdown: ^Dropwdown) {
+draw_dropdown :: proc(dropdown: ^Dropdown) {
 	if dropdown.show {
 		rl.DrawRectangleRec(dropdown.rec, rl.RAYWHITE)
 
