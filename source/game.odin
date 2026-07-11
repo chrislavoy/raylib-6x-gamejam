@@ -210,38 +210,44 @@ draw :: proc() {
 		10,
 		5,
 		20,
-		rl.BLACK,
+		rl.RAYWHITE,
 	)
 	rl.DrawText(
 		rl.TextFormat("Eggs: %d", game.egg_count),
 		10,
 		40,
 		20,
-		rl.BLACK,
+		rl.RAYWHITE,
 	)
 	rl.DrawText(
 		rl.TextFormat("Milk: %d", game.milk_count),
 		10,
 		75,
 		20,
-		rl.BLACK,
+		rl.RAYWHITE,
 	)
 	rl.DrawText(
 		rl.TextFormat("Flour: %d", game.flour_count),
 		175,
 		5,
 		20,
-		rl.BLACK,
+		rl.RAYWHITE,
 	)
 	rl.DrawText(
 		rl.TextFormat("Cake: %d", game.cake_count),
 		175,
 		40,
 		20,
-		rl.BLACK,
+		rl.RAYWHITE,
+	)
+	rl.DrawText(
+		rl.TextFormat("Market Value"), 390, 5, 20, rl.RAYWHITE,
+	)
+	rl.DrawText(
+		rl.TextFormat("Wheat: 1 Flour: 2\nEggs: 1 Cake: 15\nMilk: 5\n"), 390, 30, 20, rl.RAYWHITE,
 	)
 
-	rl.DrawText(rl.TextFormat("Money: %d", game.money), 600, 10, 20, rl.BLACK)
+	rl.DrawText(rl.TextFormat("Money: %d", game.money), 600, 10, 20, rl.RAYWHITE)
 	rl.EndDrawing()
 }
 
