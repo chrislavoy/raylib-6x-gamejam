@@ -204,7 +204,6 @@ draw_tiles :: proc(tiles: ^[TILE_ARR_COUNT]Tile) {
 }
 
 change_tile_industry :: proc(tile: ^Tile, industry: Industry) {
-	// game.tile_arr[i].industry = game.ind_arr[ind_type]
 	tile.industry = industry
 
 	if industry.type == .Wheat ||
@@ -256,6 +255,7 @@ stop_production :: proc(tile: ^Tile) {
 }
 
 toggle_industry :: proc(type: Industry_Type) {
+	rl.PlaySound(game.button_click)
 	#partial switch type {
 	case .Mill:
 		game.tile_arr[4].show_progress_bar =

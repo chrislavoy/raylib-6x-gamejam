@@ -121,27 +121,33 @@ start_product_animation :: proc(product: ^Product) {
 	product.dst_rec.y = product.start_pos.y
 	product.time = 0
 	product.show = true
+
+	#partial switch product.type {
+	case .Wheat:
+		rl.PlaySound(game.place_wheat_sound)
+	case .Eggs:
+		rl.PlaySound(game.place_chicken_sound)
+	case .Milk:
+		rl.PlaySound(game.place_cow_sound)
+	}
 }
 
 end_product_animation :: proc(product: ^Product) {
 	product.show = false
 
 	// Play collection sound
+	rl.PlaySound(game.collect_sound)
+
 	#partial switch product.type {
 	case .Wheat:
-		rl.PlaySound(game.collect_sound)
 		game.wheat_count += product.count
 	case .Eggs:
-		rl.PlaySound(game.collect_sound)
 		game.egg_count += product.count
 	case .Milk:
-		rl.PlaySound(game.collect_sound)
 		game.milk_count += product.count
 	case .Flour:
-		rl.PlaySound(game.collect_sound)
 		game.flour_count += product.count
 	case .Cake:
-		rl.PlaySound(game.collect_sound)
 		game.cake_count += product.count
 	}
 }
