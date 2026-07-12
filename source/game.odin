@@ -23,6 +23,7 @@ Game :: struct {
 	button_arr:          [BUTTON_ARR_COUNT]Button,
 	mill_dropdown:       Production,
 	bakery_dropdown:     Production,
+	purchase_dropdown:   Production,
 	dropdown_open:       bool,
 	collect_sound:       rl.Sound,
 	place_wheat_sound:   rl.Sound,
@@ -72,11 +73,11 @@ update :: proc() {
 	update_dropdown(&game.dropdown, &fs)
 	update_production(&game.mill_dropdown, &fs)
 	update_production(&game.bakery_dropdown, &fs)
+	update_production(&game.purchase_dropdown, &fs)
 
 	// Handle Input
 	handle_input(&fs)
 }
-
 
 handle_input :: proc(fs: ^Frame_State) {
 	if (rl.GetTouchPointCount() > 0 && rl.IsGestureDetected(.TAP)) ||
@@ -84,7 +85,14 @@ handle_input :: proc(fs: ^Frame_State) {
 		if game.dropdown_open {
 			if fs.mouse_over_production {
 				if fs.mouse_over_production_button {
-					toggle_industry(fs.production_button.type)
+					if fs.production.id == 2 {
+						change_industry(
+							fs.production.tile_id,
+							fs.production.ind_to_buy.type,
+						)
+					} else {
+						toggle_industry(fs.production_button.type)
+					}
 				}
 			} else if fs.mouse_over_dropdown {
 				if fs.mouse_over_dropdown_button {
@@ -108,17 +116,18 @@ handle_input :: proc(fs: ^Frame_State) {
 			case .Bakery:
 				show_bakery_production(fs.input_pos)
 			case .MillForSale:
-				change_industry(fs.tile.id, .Mill)
+				show_purchase_production(fs.tile.id, &fs.tile.industry)
 			case .BakeryForSale:
-				change_industry(fs.tile.id, .Bakery)
+				show_purchase_production(fs.tile.id, &fs.tile.industry)
+			case .ForSale:
+				show_purchase_production(fs.tile.id, &fs.tile.industry)
 			case .Unclaimed,
 			     .Empty,
 			     .Wheat,
 			     .Cow,
 			     .Chicken,
 			     .Farmhouse,
-			     .Storehouse,
-			     .ForSale:
+			     .Storehouse:
 				show_dropdown(fs.input_pos, fs.tile.id)
 			}
 		}
@@ -220,6 +229,10 @@ draw :: proc() {
 		draw_bakery_production()
 	}
 
+	if game.purchase_dropdown.show {
+		draw_purchase_production()
+	}
+
 	rl.DrawText(
 		rl.TextFormat("Wheat: %d", game.wheat_count),
 		10,
@@ -307,8 +320,9 @@ game_init :: proc() {
 	game.milk_img_src_rec = get_sprite_rec_by_name("Milk_Icon")
 	game.cake_img_src_rec = get_sprite_rec_by_name("Cake_Icon")
 
-	game.bakery_dropdown.show = false
 	game.mill_dropdown.show = false
+	game.bakery_dropdown.show = false
+	game.purchase_dropdown.show = false
 
 	init_sell_buttons()
 
@@ -343,7 +357,7 @@ game_init :: proc() {
 			250,
 			0,
 		},
-		{.ForSale, get_sprite_rec_by_name("ForSale"), 0, 0, 0, 0, 50, 0},
+		{.ForSale, get_sprite_rec_by_name("ForSale"), 0, 0, 0, 0, 15, 0},
 		{.MillForSale, get_sprite_rec_by_name("Mill"), 1, 20, 0, 1, 100, 0},
 		{
 			.BakeryForSale,
@@ -429,6 +443,17 @@ game_init :: proc() {
 		{0, 0, 32, 32},
 	}
 
+	purchase_dropdown_button: Dropdown_Button = {
+		{0, 0, 64, 64},
+		.Normal,
+		rl.LIGHTGRAY,
+		rl.BLACK,
+		.ForSale,
+		"Purchase",
+		get_sprite_rec_by_name("Buy"),
+		{0, 0, 32, 32},
+	}
+
 	init_dropdown(&game.dropdown, {0, 0, 150, 205}, dropdown_btns)
 
 	init_production(
@@ -443,6 +468,13 @@ game_init :: proc() {
 		1,
 		{0, 0, 150, 220},
 		bakery_dropdown_button,
+	)
+
+	init_production(
+		&game.purchase_dropdown,
+		2,
+		{(720 / 2) - 150, (720 / 2) - 150, 200, 200},
+		purchase_dropdown_button,
 	)
 
 	init_tiles(&game.tile_arr)
@@ -467,6 +499,9 @@ game_shutdown :: proc() {
 	rl.UnloadTexture(game.spritesheet)
 	rl.UnloadSound(game.collect_sound)
 	strings.builder_destroy(&game.dropdown.sb)
+	strings.builder_destroy(&game.purchase_dropdown.sb)
+	strings.builder_destroy(&game.mill_dropdown.sb)
+	strings.builder_destroy(&game.bakery_dropdown.sb)
 }
 
 @(export)
@@ -504,17 +539,31 @@ change_industry :: proc(i: int, ind_type: Industry_Type) {
 		rl.PlaySound(game.place_cow_sound)
 		game.money -= game.ind_arr[ind_type].cost
 	case .Empty:
-		rl.PlaySound(game.place_empty_sound)
-		game.money += game.ind_arr[prev_ind].sell_value
+		if prev_ind == .ForSale {
+			if game.money >= game.ind_arr[ind_type].cost {
+				game.money -= game.ind_arr[ind_type].cost
+				rl.PlaySound(game.sell_sound)
+				hide_dropdowns()
+			} else {
+				can_change = false
+			}
+		} else {
+			rl.PlaySound(game.place_empty_sound)
+			game.money += game.ind_arr[prev_ind].sell_value
+		}
 	case .Mill:
 		if game.money >= game.ind_arr[ind_type].cost {
 			game.money -= game.ind_arr[ind_type].cost
+			rl.PlaySound(game.sell_sound)
+			hide_dropdowns()
 		} else {
 			can_change = false
 		}
 	case .Bakery:
 		if game.money >= game.ind_arr[ind_type].cost {
 			game.money -= game.ind_arr[ind_type].cost
+			rl.PlaySound(game.sell_sound)
+			hide_dropdowns()
 		} else {
 			can_change = false
 		}

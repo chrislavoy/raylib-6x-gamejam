@@ -7,7 +7,7 @@ Spritesheet_Reference :: struct {
 	rec:  rl.Rectangle,
 }
 
-sprite_ref := [35]Spritesheet_Reference {
+sprite_ref := [37]Spritesheet_Reference {
 	{"Unclaimed", {0, 0, 144, 144}},
 	{"ForSale", {144, 0, 144, 144}},
 	{"Empty", {288, 0, 144, 144}},
@@ -38,14 +38,16 @@ sprite_ref := [35]Spritesheet_Reference {
 	{"SellCake_Clicked", {544, 320, 32, 32}},
 	{"CakeImg", {288, 352, 32, 32}},
 	{"CakeImg_Clicked", {320, 352, 32, 32}},
-	{"Wheat_Icon", {352, 352, 17, 22}},
-	{"Cake_Icon", {369, 352, 19, 18}},
-	{"Milk_Icon", {388, 352, 11, 26}},
-	{"Flour_Icon", {399, 352, 13, 21}},
-	{"Eggs_Icon", {412, 352, 17, 16}},
+	{"Wheat_Icon", {416, 352, 17, 22}},
+	{"Cake_Icon", {433, 352, 19, 18}},
+	{"Milk_Icon", {452, 352, 11, 26}},
+	{"Flour_Icon", {463, 352, 13, 21}},
+	{"Eggs_Icon", {476, 352, 17, 16}},
+	{"Buy", {352, 352, 32, 32}},
+	{"Buy_Clicked", {384, 352, 32, 32}},
 }
 
-get_spritesheet_recs :: proc() -> [35]Spritesheet_Reference {
+get_spritesheet_recs :: proc() -> [37]Spritesheet_Reference {
 	return sprite_ref
 }
 

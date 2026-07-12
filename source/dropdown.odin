@@ -133,5 +133,6 @@ hide_dropdowns :: proc() {
 	game.dropdown.show = false
 	game.mill_dropdown.show = false
 	game.bakery_dropdown.show = false
+	game.purchase_dropdown.show = false
 	game.dropdown_open = false
 }

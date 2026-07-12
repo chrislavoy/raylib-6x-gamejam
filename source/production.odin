@@ -1,12 +1,17 @@
 package game
 
+import "core:strings"
 import rl "vendor:raylib"
 
 Production :: struct {
-	id:     int,
-	show:   bool,
-	rec:    rl.Rectangle,
-	button: Dropdown_Button,
+	id:            int,
+	show:          bool,
+	rec:           rl.Rectangle,
+	button:        Dropdown_Button,
+	tile_id:       int,
+	ind_to_buy:    ^Industry,
+	purchase_text: cstring,
+	sb:            strings.Builder,
 }
 
 init_production :: proc(
@@ -17,6 +22,8 @@ init_production :: proc(
 ) {
 	dropdown.rec = rec
 	dropdown.button = button
+	dropdown.id = id
+	dropdown.sb = strings.builder_make()
 }
 
 update_production :: proc(production: ^Production, fs: ^Frame_State) {
@@ -173,6 +180,25 @@ draw_mill_production :: proc() {
 	)
 }
 
+draw_purchase_production :: proc() {
+	rl.DrawRectangleRec(game.purchase_dropdown.rec, rl.LIGHTGRAY)
+	rl.DrawText(
+		game.purchase_dropdown.purchase_text,
+		cast(i32)game.purchase_dropdown.rec.x,
+		cast(i32)game.purchase_dropdown.rec.y + 40,
+		20,
+		rl.BLACK,
+	)
+	rl.DrawTexturePro(
+		game.spritesheet,
+		game.purchase_dropdown.button.img_src_rec,
+		game.purchase_dropdown.button.rec,
+		{0, 0},
+		0,
+		rl.WHITE,
+	)
+}
+
 show_mill_production :: proc(point: rl.Vector2) {
 	game.dropdown_open = true
 	game.mill_dropdown.show = true
@@ -203,4 +229,61 @@ show_bakery_production :: proc(point: rl.Vector2) {
 		game.bakery_dropdown.rec.height -
 		game.bakery_dropdown.button.rec.height -
 		5
+}
+
+show_purchase_production :: proc(tile_id: int, ind: ^Industry) {
+	game.dropdown_open = true
+	game.purchase_dropdown.tile_id = tile_id
+
+	strings.builder_reset(&game.purchase_dropdown.sb)
+
+	if ind.type == .MillForSale {
+		game.purchase_dropdown.ind_to_buy = &game.ind_arr[Industry_Type.Mill]
+
+		strings.write_string(
+			&game.purchase_dropdown.sb,
+			"       Purchase\n        the Mill\n       for $",
+		)
+		strings.write_int(&game.purchase_dropdown.sb, cast(int)ind.cost)
+		strings.write_string(&game.purchase_dropdown.sb, "?")
+		game.purchase_dropdown.purchase_text = strings.to_cstring(
+			&game.purchase_dropdown.sb,
+		)
+	} else if ind.type == .BakeryForSale {
+		game.purchase_dropdown.ind_to_buy = &game.ind_arr[Industry_Type.Bakery]
+		strings.write_string(
+			&game.purchase_dropdown.sb,
+			"       Purchase\n      the Bakery\n       for $",
+		)
+		strings.write_int(&game.purchase_dropdown.sb, cast(int)ind.cost)
+		strings.write_string(&game.purchase_dropdown.sb, "?")
+		game.purchase_dropdown.purchase_text = strings.to_cstring(
+			&game.purchase_dropdown.sb,
+		)
+	} else {
+		game.purchase_dropdown.ind_to_buy = &game.ind_arr[Industry_Type.Empty]
+		strings.write_string(
+			&game.purchase_dropdown.sb,
+			"      Purchase\n       this plot\n       for $",
+		)
+		strings.write_int(&game.purchase_dropdown.sb, cast(int)ind.cost)
+		strings.write_string(&game.purchase_dropdown.sb, "?")
+		game.purchase_dropdown.purchase_text = strings.to_cstring(
+			&game.purchase_dropdown.sb,
+		)
+
+	}
+
+	game.purchase_dropdown.show = true
+
+	game.purchase_dropdown.button.rec.x =
+		game.purchase_dropdown.rec.x +
+		(game.purchase_dropdown.rec.width / 2) -
+		(game.purchase_dropdown.button.rec.width / 2)
+	game.purchase_dropdown.button.rec.y =
+		game.purchase_dropdown.rec.y +
+		game.purchase_dropdown.rec.height -
+		game.purchase_dropdown.button.rec.height -
+		5
+
 }

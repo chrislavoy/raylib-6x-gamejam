@@ -41,6 +41,7 @@ Tile :: struct {
 	progress_bar:      Progress_Bar,
 	product:           Product,
 	producing:         bool,
+	tint:              rl.Color,
 }
 
 get_initial_tile_positions :: proc() -> [TILE_ARR_COUNT]rl.Rectangle {
@@ -89,9 +90,12 @@ init_tile :: proc(tile: ^Tile, id: int, pos: rl.Rectangle) {
 
 	tile.id = id
 	tile.rec = pos
+
 	for i := 0; i < len(collider_points); i += 1 {
 		tile.collider[i] = {pos.x, pos.y} + collider_points[i]
 	}
+
+	tile.tint = rl.WHITE
 
 	change_tile_industry(tile, game.ind_arr[Industry_Type.Unclaimed])
 
@@ -112,25 +116,47 @@ init_tiles :: proc(tile_arr: ^[TILE_ARR_COUNT]Tile) {
 		init_tile(&tile_arr[i], i, pos_arr[i])
 
 		if i < 9 {
-			change_tile_industry(
-				&tile_arr[i],
-				game.ind_arr[Industry_Type.Unclaimed],
-			)
+			if i == 1 {
+				change_tile_industry(
+					&tile_arr[1],
+					game.ind_arr[Industry_Type.Storehouse],
+				)
+			} else if i == 4 {
+				change_tile_industry(
+					&tile_arr[4],
+					game.ind_arr[Industry_Type.MillForSale],
+				)
+			} else if i == 5 {
+				change_tile_industry(
+					&tile_arr[5],
+					game.ind_arr[Industry_Type.Farmhouse],
+				)
+			} else if i == 6 {
+				change_tile_industry(
+					&tile_arr[6],
+					game.ind_arr[Industry_Type.BakeryForSale],
+				)
+			} else {
+				change_tile_industry(
+					&tile_arr[i],
+					game.ind_arr[Industry_Type.Unclaimed],
+				)
+			}
 		} else {
-			change_tile_industry(
-				&tile_arr[i],
-				game.ind_arr[Industry_Type.Empty],
-			)
+			if i == 9 {
+				change_tile_industry(
+					&tile_arr[i],
+					game.ind_arr[Industry_Type.Empty],
+				)
+			} else {
+				change_tile_industry(
+					&tile_arr[i],
+					game.ind_arr[Industry_Type.ForSale],
+				)
+			}
 		}
 	}
 
-	change_tile_industry(&tile_arr[1], game.ind_arr[Industry_Type.Storehouse])
-	change_tile_industry(&tile_arr[4], game.ind_arr[Industry_Type.MillForSale])
-	change_tile_industry(&tile_arr[5], game.ind_arr[Industry_Type.Farmhouse])
-	change_tile_industry(
-		&tile_arr[6],
-		game.ind_arr[Industry_Type.BakeryForSale],
-	)
 }
 
 update_tiles :: proc(tiles: ^[TILE_ARR_COUNT]Tile, fs: ^Frame_State) {
@@ -180,34 +206,14 @@ update_tiles :: proc(tiles: ^[TILE_ARR_COUNT]Tile, fs: ^Frame_State) {
 
 draw_tiles :: proc(tiles: ^[TILE_ARR_COUNT]Tile) {
 	for &tile in tiles {
-		if tile.industry.type == .MillForSale ||
-		   tile.industry.type == .BakeryForSale {
-			rl.DrawTexturePro(
-				game.spritesheet,
-				tile.industry.src,
-				tile.rec,
-				{0, 0},
-				0,
-				rl.GRAY,
-			)
-
-			rl.DrawText(
-				rl.TextFormat("FOR SALE:\n    $%d", tile.industry.cost),
-				cast(i32)(tile.rec.x + tile.rec.width / 2 - 54),
-				cast(i32)(tile.rec.y + tile.rec.height / 2 - 20),
-				20,
-				rl.WHITE,
-			)
-		} else {
-			rl.DrawTexturePro(
-				game.spritesheet,
-				tile.industry.src,
-				tile.rec,
-				{0, 0},
-				0,
-				rl.WHITE,
-			)
-		}
+		rl.DrawTexturePro(
+			game.spritesheet,
+			tile.industry.src,
+			tile.rec,
+			{0, 0},
+			0,
+			tile.tint,
+		)
 
 		if tile.show_progress_bar {
 			draw_progress_bar(&tile.progress_bar)
@@ -231,6 +237,7 @@ draw_tiles :: proc(tiles: ^[TILE_ARR_COUNT]Tile) {
 
 change_tile_industry :: proc(tile: ^Tile, industry: Industry) {
 	tile.industry = industry
+	tile.tint = rl.WHITE
 
 	if industry.type == .Wheat ||
 	   industry.type == .Chicken ||
@@ -240,6 +247,10 @@ change_tile_industry :: proc(tile: ^Tile, industry: Industry) {
 	} else {
 		tile.show_progress_bar = false
 		tile.producing = false
+	}
+
+	if industry.type == .MillForSale || industry.type == .BakeryForSale {
+		tile.tint = rl.GRAY
 	}
 
 	init_progress_bar(&tile.progress_bar, tile.rec, industry.max_growth)
