@@ -48,6 +48,7 @@ Game :: struct {
 	milk_img_src_rec:    rl.Rectangle,
 	cake_img_src_rec:    rl.Rectangle,
 	music:               rl.Music,
+	run:                 bool,
 }
 
 Frame_State :: struct {
@@ -296,8 +297,8 @@ draw :: proc() {
 
 	rl.DrawText(
 		rl.TextFormat("Money: $%d", game.money),
-		600,
-		10,
+		575,
+		5,
 		20,
 		rl.RAYWHITE,
 	)
@@ -308,6 +309,8 @@ draw :: proc() {
 game_update :: proc() {
 	update()
 	draw()
+
+	free_all(context.temp_allocator)
 }
 
 get_ui_button_initial_positions :: proc() -> [BUTTON_ARR_COUNT]rl.Rectangle {
@@ -322,6 +325,7 @@ get_ui_button_initial_positions :: proc() -> [BUTTON_ARR_COUNT]rl.Rectangle {
 
 @(export)
 game_init :: proc() {
+	game.run = true
 	game.spritesheet = rl.LoadTexture("assets/farm_spritesheet.png")
 	game.collect_sound = rl.LoadSound("assets/collect.wav")
 	game.place_wheat_sound = rl.LoadSound("assets/wheat.wav")
@@ -493,7 +497,7 @@ game_init :: proc() {
 	init_production(
 		&game.purchase_dropdown,
 		2,
-		{(720 / 2) - 150, (720 / 2) - 150, 200, 200},
+		{(720 / 2) - 100, (720 / 2) - 100, 200, 200},
 		purchase_dropdown_button,
 	)
 
@@ -510,7 +514,19 @@ game_init_window :: proc() {
 
 @(export)
 game_should_run :: proc() -> bool {
-	return !rl.WindowShouldClose()
+	// if ignore_frame_count < 5 {
+	// 	return true
+	// } else {
+	// 	return rl.WindowShouldClose()
+	// }
+	when ODIN_OS != .JS {
+		// Never run this proc in browser. It contains a 16 ms sleep on web!
+		if rl.WindowShouldClose() {
+			return false
+		}
+	}
+
+	return game.run
 }
 
 @(export)
@@ -530,6 +546,8 @@ game_shutdown :: proc() {
 	strings.builder_destroy(&game.purchase_dropdown.sb)
 	strings.builder_destroy(&game.mill_dropdown.sb)
 	strings.builder_destroy(&game.bakery_dropdown.sb)
+
+	// free(game)
 }
 
 @(export)

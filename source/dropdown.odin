@@ -1,5 +1,6 @@
 package game
 
+import "core:math"
 import "core:strings"
 import rl "vendor:raylib"
 
@@ -109,10 +110,11 @@ show_dropdown :: proc(point: rl.Vector2, tile_id: int) {
 			game.dropdown.buttons[i].img_src_rec.width -
 			5
 
-		game.dropdown.buttons[i].img_dst_rec.y =
+		game.dropdown.buttons[i].img_dst_rec.y = math.round_f32(
 			game.dropdown.buttons[i].rec.y +
 			(game.dropdown.buttons[i].rec.height / 2) -
-			(game.dropdown.buttons[i].img_src_rec.height / 2)
+			(game.dropdown.buttons[i].img_src_rec.height / 2),
+		)
 
 		if game.money < game.ind_arr[game.dropdown.buttons[i].type].cost ||
 		   game.dropdown.buttons[i].type == tile_ind {
