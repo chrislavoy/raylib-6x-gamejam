@@ -3,7 +3,7 @@ package game
 import "core:strings"
 import rl "vendor:raylib"
 
-STARTING_MONEY :: 10
+STARTING_MONEY :: 300
 IND_ARR_COUNT :: 12
 BUTTON_ARR_COUNT :: 5
 MILL_TILE_ID :: 4
@@ -11,9 +11,9 @@ BAKERY_TILE_ID :: 6
 
 PLOT_COST_INCREASE :: 5
 
-WHEAT_VALUE :: 1
-FLOUR_VALUE :: 2
-EGGS_VALUE :: 1
+WHEAT_VALUE :: 2
+FLOUR_VALUE :: 4
+EGGS_VALUE :: 2
 CAKE_VALUE :: 15
 MILK_VALUE :: 5
 
@@ -164,7 +164,7 @@ handle_input :: proc(fs: ^Frame_State) {
 
 				if amount > 0 {
 					game.wheat_count -= amount
-					game.money += amount * 1
+					game.money += amount * 2
 					rl.PlaySound(game.sell_sound)
 				}
 			case .Sell_Eggs:
@@ -176,7 +176,7 @@ handle_input :: proc(fs: ^Frame_State) {
 
 				if amount > 0 {
 					game.egg_count -= amount
-					game.money += amount * 1
+					game.money += amount * 2
 					rl.PlaySound(game.sell_sound)
 				}
 			case .Sell_Milk:
@@ -200,7 +200,7 @@ handle_input :: proc(fs: ^Frame_State) {
 
 				if amount > 0 {
 					game.flour_count -= amount
-					game.money += amount * 2
+					game.money += amount * 4
 					rl.PlaySound(game.sell_sound)
 				}
 			case .Sell_Cake:
@@ -322,16 +322,17 @@ get_ui_button_initial_positions :: proc() -> [BUTTON_ARR_COUNT]rl.Rectangle {
 
 @(export)
 game_init :: proc() {
-	game.collect_sound = rl.LoadSound("assets\\collect.wav")
-	game.place_wheat_sound = rl.LoadSound("assets\\wheat.wav")
-	game.place_chicken_sound = rl.LoadSound("assets\\chicken.wav")
-	game.place_cow_sound = rl.LoadSound("assets\\cow.wav")
-	game.place_empty_sound = rl.LoadSound("assets\\empty_plot.wav")
-	game.sell_sound = rl.LoadSound("assets\\sell.wav")
-	game.button_click = rl.LoadSound("assets\\button_chunk.wav")
-	game.music = rl.LoadMusicStream("assets\\music.mp3")
-	game.cake_sound = rl.LoadSound("assets\\cake.wav")
-	game.flour_sound = rl.LoadSound("assets\\flour.wav")
+	game.spritesheet = rl.LoadTexture("assets/farm_spritesheet.png")
+	game.collect_sound = rl.LoadSound("assets/collect.wav")
+	game.place_wheat_sound = rl.LoadSound("assets/wheat.wav")
+	game.place_chicken_sound = rl.LoadSound("assets/chicken.wav")
+	game.place_cow_sound = rl.LoadSound("assets/cow.wav")
+	game.place_empty_sound = rl.LoadSound("assets/empty_plot.wav")
+	game.sell_sound = rl.LoadSound("assets/sell.wav")
+	game.button_click = rl.LoadSound("assets/button_chunk.wav")
+	game.music = rl.LoadMusicStream("assets/music.mp3")
+	game.cake_sound = rl.LoadSound("assets/cake.wav")
+	game.flour_sound = rl.LoadSound("assets/flour.wav")
 
 	game.wheat_img_src_rec = get_sprite_rec_by_name("Wheat_Icon")
 	game.flour_img_src_rec = get_sprite_rec_by_name("Flour_Icon")
@@ -360,12 +361,12 @@ game_init :: proc() {
 	game.ind_arr = [IND_ARR_COUNT]Industry {
 		{.Unclaimed, get_sprite_rec_by_name("Unclaimed"), 0, 0, 0, 0, 0, 0},
 		{.Empty, get_sprite_rec_by_name("Empty"), 0, 0, 0, 0, 0, 0},
-		{.Wheat, get_sprite_rec_by_name("Wheat"), 1, 20, 0, 1, 5, 5},
-		{.Cow, get_sprite_rec_by_name("Cows"), 1, 25, 0, 1, 15, 5},
-		{.Chicken, get_sprite_rec_by_name("Chickens"), 1, 20, 0, 3, 10, 5},
+		{.Wheat, get_sprite_rec_by_name("Wheat"), 1, 10, 0, 1, 5, 5},
+		{.Cow, get_sprite_rec_by_name("Cows"), 1, 18, 0, 1, 15, 5},
+		{.Chicken, get_sprite_rec_by_name("Chickens"), 1, 15, 0, 3, 10, 5},
 		{.Farmhouse, get_sprite_rec_by_name("Farmhouse"), 0, 0, 0, 0, 0, 0},
-		{.Mill, get_sprite_rec_by_name("Mill"), 1, 20, 0, 1, 100, 0},
-		{.Bakery, get_sprite_rec_by_name("Bakery"), 1, 60, 0, 1, 500, 0},
+		{.Mill, get_sprite_rec_by_name("Mill"), 1, 13, 0, 1, 0, 0},
+		{.Bakery, get_sprite_rec_by_name("Bakery"), 1, 60, 0, 1, 0, 0},
 		{
 			.Storehouse,
 			get_sprite_rec_by_name("Storehouse"),
@@ -377,7 +378,7 @@ game_init :: proc() {
 			0,
 		},
 		{.ForSale, get_sprite_rec_by_name("ForSale"), 0, 0, 0, 0, 15, 0},
-		{.MillForSale, get_sprite_rec_by_name("Mill"), 1, 20, 0, 1, 100, 0},
+		{.MillForSale, get_sprite_rec_by_name("Mill"), 1, 20, 0, 1, 30, 0},
 		{
 			.BakeryForSale,
 			get_sprite_rec_by_name("Bakery"),
@@ -385,7 +386,7 @@ game_init :: proc() {
 			60,
 			0,
 			1,
-			500,
+			300,
 			0,
 		},
 	}
@@ -497,14 +498,13 @@ game_init :: proc() {
 	)
 
 	init_tiles(&game.tile_arr)
-	game.spritesheet = rl.LoadTexture("assets\\farm_spritesheet.png")
-
+	
 	rl.PlayMusicStream(game.music)
 }
 
 @(export)
 game_init_window :: proc() {
-	rl.InitWindow(720, 720, "Farm Game")
+	rl.InitWindow(720, 720, "High Yield")
 	rl.InitAudioDevice() // Initialize Audio Device
 }
 
@@ -583,7 +583,7 @@ change_industry :: proc(i: int, ind_type: Industry_Type) {
 	case .Mill:
 		if game.money >= game.ind_arr[ind_type].cost {
 			game.money -= game.ind_arr[ind_type].cost
-			rl.PlaySound(game.sell_sound)
+			rl.PlaySound(game.flour_sound)
 			hide_dropdowns()
 		} else {
 			can_change = false
@@ -591,7 +591,7 @@ change_industry :: proc(i: int, ind_type: Industry_Type) {
 	case .Bakery:
 		if game.money >= game.ind_arr[ind_type].cost {
 			game.money -= game.ind_arr[ind_type].cost
-			rl.PlaySound(game.sell_sound)
+			rl.PlaySound(game.cake_sound)
 			hide_dropdowns()
 		} else {
 			can_change = false
