@@ -1,6 +1,5 @@
 package game
 
-import "core:fmt"
 import "core:strings"
 import rl "vendor:raylib"
 
@@ -27,6 +26,7 @@ init_production :: proc(
 	dropdown.rec = rec
 	dropdown.button = button
 	dropdown.tile_id = 0
+	dropdown.ind_to_buy = .Unclaimed
 	dropdown.purchase_text = ""
 	dropdown.sb = strings.builder_make()
 	dropdown.can_buy = false
@@ -47,10 +47,10 @@ update_production :: proc(production: ^Production, fs: ^Frame_State) {
 		}
 	}
 
-	if production.show &&
+	if production.id == 1 &&
+	   production.show &&
 	   game.money >= game.ind_arr[production.ind_to_buy].cost {
 		production.can_buy = true
-		fmt.println(game.ind_arr[production.ind_to_buy.type].cost)
 	} else {
 		production.can_buy = false
 	}
@@ -258,7 +258,8 @@ show_purchase_production :: proc(tile_id: int, ind: ^Industry) {
 	strings.builder_reset(&game.purchase_dropdown.sb)
 
 	if ind.type == .MillForSale {
-		game.purchase_dropdown.ind_to_buy = &game.ind_arr[Industry_Type.Mill]
+		game.purchase_dropdown.ind_to_buy =
+			game.ind_arr[Industry_Type.Mill].type
 
 		strings.write_string(
 			&game.purchase_dropdown.sb,
@@ -273,7 +274,8 @@ show_purchase_production :: proc(tile_id: int, ind: ^Industry) {
 			&game.purchase_dropdown.sb,
 		)
 	} else if ind.type == .BakeryForSale {
-		game.purchase_dropdown.ind_to_buy = &game.ind_arr[Industry_Type.Bakery]
+		game.purchase_dropdown.ind_to_buy =
+			game.ind_arr[Industry_Type.Bakery].type
 		strings.write_string(
 			&game.purchase_dropdown.sb,
 			"       Purchase\n      the Bakery\n       for $",
@@ -288,7 +290,7 @@ show_purchase_production :: proc(tile_id: int, ind: ^Industry) {
 		)
 	} else {
 		game.purchase_dropdown.ind_to_buy =
-		&game.ind_arr[Industry_Type.ForSale]
+			game.ind_arr[Industry_Type.Empty].type
 		strings.write_string(
 			&game.purchase_dropdown.sb,
 			"      Purchase\n       this plot\n       for $",

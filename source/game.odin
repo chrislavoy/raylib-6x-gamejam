@@ -3,7 +3,7 @@ package game
 import "core:strings"
 import rl "vendor:raylib"
 
-STARTING_MONEY :: 300
+STARTING_MONEY :: 10
 IND_ARR_COUNT :: 12
 BUTTON_ARR_COUNT :: 5
 MILL_TILE_ID :: 4
@@ -498,7 +498,7 @@ game_init :: proc() {
 	)
 
 	init_tiles(&game.tile_arr)
-	
+
 	rl.PlayMusicStream(game.music)
 }
 
@@ -581,16 +581,16 @@ change_industry :: proc(i: int, ind_type: Industry_Type) {
 			game.money += game.ind_arr[prev_ind].sell_value
 		}
 	case .Mill:
-		if game.money >= game.ind_arr[ind_type].cost {
-			game.money -= game.ind_arr[ind_type].cost
+		if game.money >= game.ind_arr[prev_ind].cost {
+			game.money -= game.ind_arr[prev_ind].cost
 			rl.PlaySound(game.flour_sound)
 			hide_dropdowns()
 		} else {
 			can_change = false
 		}
 	case .Bakery:
-		if game.money >= game.ind_arr[ind_type].cost {
-			game.money -= game.ind_arr[ind_type].cost
+		if game.money >= game.ind_arr[prev_ind].cost {
+			game.money -= game.ind_arr[prev_ind].cost
 			rl.PlaySound(game.cake_sound)
 			hide_dropdowns()
 		} else {
