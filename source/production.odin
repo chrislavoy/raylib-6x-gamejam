@@ -12,7 +12,6 @@ Production :: struct {
 	ind_to_buy:    Industry_Type,
 	purchase_text: cstring,
 	sb:            strings.Builder,
-	can_buy:       bool,
 }
 
 init_production :: proc(
@@ -29,7 +28,6 @@ init_production :: proc(
 	dropdown.ind_to_buy = .Unclaimed
 	dropdown.purchase_text = ""
 	dropdown.sb = strings.builder_make()
-	dropdown.can_buy = false
 }
 
 update_production :: proc(production: ^Production, fs: ^Frame_State) {
@@ -45,14 +43,6 @@ update_production :: proc(production: ^Production, fs: ^Frame_State) {
 			fs.mouse_over_production_button = true
 			fs.production_button = &production.button
 		}
-	}
-
-	if production.id == 2 &&
-	   production.show &&
-	   game.money >= game.ind_arr[production.ind_to_buy].cost {
-		production.can_buy = true
-	} else {
-		production.can_buy = false
 	}
 }
 
@@ -203,19 +193,13 @@ draw_purchase_production :: proc() {
 		20,
 		rl.BLACK,
 	)
-
-	tint := rl.WHITE
-	if !game.purchase_dropdown.can_buy {
-		tint = rl.DARKGRAY
-	}
-
 	rl.DrawTexturePro(
 		game.spritesheet,
 		game.purchase_dropdown.button.img_src_rec,
 		game.purchase_dropdown.button.rec,
 		{0, 0},
 		0,
-		tint,
+		rl.WHITE,
 	)
 }
 

@@ -295,7 +295,7 @@ draw :: proc() {
 	)
 
 	rl.DrawText(
-		rl.TextFormat("Money: %d", game.money),
+		rl.TextFormat("Money: $%d", game.money),
 		600,
 		10,
 		20,
