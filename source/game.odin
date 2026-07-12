@@ -9,6 +9,14 @@ BUTTON_ARR_COUNT :: 5
 MILL_TILE_ID :: 4
 BAKERY_TILE_ID :: 6
 
+PLOT_COST_INCREASE :: 5
+
+WHEAT_VALUE :: 1
+FLOUR_VALUE :: 2
+EGGS_VALUE :: 1
+CAKE_VALUE :: 15
+MILK_VALUE :: 5
+
 Game :: struct {
 	wheat_count:         u32,
 	milk_count:          u32,
@@ -32,6 +40,8 @@ Game :: struct {
 	place_empty_sound:   rl.Sound,
 	sell_sound:          rl.Sound,
 	button_click:        rl.Sound,
+	cake_sound:          rl.Sound,
+	flour_sound:         rl.Sound,
 	wheat_img_src_rec:   rl.Rectangle,
 	flour_img_src_rec:   rl.Rectangle,
 	eggs_img_src_rec:    rl.Rectangle,
@@ -270,7 +280,14 @@ draw :: proc() {
 	)
 	rl.DrawText(rl.TextFormat("Market Value"), 390, 5, 20, rl.RAYWHITE)
 	rl.DrawText(
-		rl.TextFormat("Wheat: 1 Flour: 2\nEggs: 1 Cake: 15\nMilk: 5\n"),
+		rl.TextFormat(
+			"Wheat: %d Flour: %d\nEggs: %d Cake: %d\nMilk: %d\n",
+			WHEAT_VALUE,
+			FLOUR_VALUE,
+			EGGS_VALUE,
+			CAKE_VALUE,
+			MILK_VALUE,
+		),
 		390,
 		30,
 		20,
@@ -313,6 +330,8 @@ game_init :: proc() {
 	game.sell_sound = rl.LoadSound("assets\\sell.wav")
 	game.button_click = rl.LoadSound("assets\\button_chunk.wav")
 	game.music = rl.LoadMusicStream("assets\\music.mp3")
+	game.cake_sound = rl.LoadSound("assets\\cake.wav")
+	game.flour_sound = rl.LoadSound("assets\\flour.wav")
 
 	game.wheat_img_src_rec = get_sprite_rec_by_name("Wheat_Icon")
 	game.flour_img_src_rec = get_sprite_rec_by_name("Flour_Icon")
@@ -498,6 +517,15 @@ game_should_run :: proc() -> bool {
 game_shutdown :: proc() {
 	rl.UnloadTexture(game.spritesheet)
 	rl.UnloadSound(game.collect_sound)
+	rl.UnloadSound(game.place_wheat_sound)
+	rl.UnloadSound(game.place_chicken_sound)
+	rl.UnloadSound(game.place_cow_sound)
+	rl.UnloadSound(game.place_empty_sound)
+	rl.UnloadSound(game.sell_sound)
+	rl.UnloadSound(game.button_click)
+	rl.UnloadMusicStream(game.music)
+	rl.UnloadSound(game.cake_sound)
+	rl.UnloadSound(game.flour_sound)
 	strings.builder_destroy(&game.dropdown.sb)
 	strings.builder_destroy(&game.purchase_dropdown.sb)
 	strings.builder_destroy(&game.mill_dropdown.sb)
@@ -540,9 +568,10 @@ change_industry :: proc(i: int, ind_type: Industry_Type) {
 		game.money -= game.ind_arr[ind_type].cost
 	case .Empty:
 		if prev_ind == .ForSale {
-			if game.money >= game.ind_arr[ind_type].cost {
-				game.money -= game.ind_arr[ind_type].cost
+			if game.money >= game.ind_arr[prev_ind].cost {
+				game.money -= game.ind_arr[prev_ind].cost
 				rl.PlaySound(game.sell_sound)
+				game.ind_arr[prev_ind].cost += PLOT_COST_INCREASE
 				hide_dropdowns()
 			} else {
 				can_change = false

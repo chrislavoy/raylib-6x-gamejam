@@ -266,7 +266,10 @@ show_purchase_production :: proc(tile_id: int, ind: ^Industry) {
 			&game.purchase_dropdown.sb,
 			"      Purchase\n       this plot\n       for $",
 		)
-		strings.write_int(&game.purchase_dropdown.sb, cast(int)ind.cost)
+		strings.write_int(
+			&game.purchase_dropdown.sb,
+			cast(int)game.ind_arr[Industry_Type.ForSale].cost,
+		)
 		strings.write_string(&game.purchase_dropdown.sb, "?")
 		game.purchase_dropdown.purchase_text = strings.to_cstring(
 			&game.purchase_dropdown.sb,
