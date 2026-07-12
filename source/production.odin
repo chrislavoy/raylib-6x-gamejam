@@ -47,7 +47,7 @@ update_production :: proc(production: ^Production, fs: ^Frame_State) {
 		}
 	}
 
-	if production.id == 1 &&
+	if production.id == 2 &&
 	   production.show &&
 	   game.money >= game.ind_arr[production.ind_to_buy].cost {
 		production.can_buy = true
