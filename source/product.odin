@@ -129,6 +129,10 @@ start_product_animation :: proc(product: ^Product) {
 		rl.PlaySound(game.place_chicken_sound)
 	case .Milk:
 		rl.PlaySound(game.place_cow_sound)
+	case .Flour:
+		rl.PlaySound(game.flour_sound)
+	case .Cake:
+		rl.PlaySound(game.cake_sound)
 	}
 }
 
