@@ -10,7 +10,7 @@ Production :: struct {
 	rec:           rl.Rectangle,
 	button:        Dropdown_Button,
 	tile_id:       int,
-	ind_to_buy:    ^Industry,
+	ind_to_buy:    Industry_Type,
 	purchase_text: cstring,
 	sb:            strings.Builder,
 	can_buy:       bool,
@@ -22,9 +22,12 @@ init_production :: proc(
 	rec: rl.Rectangle,
 	button: Dropdown_Button,
 ) {
+	dropdown.id = id
+	dropdown.show = false
 	dropdown.rec = rec
 	dropdown.button = button
-	dropdown.id = id
+	dropdown.tile_id = 0
+	dropdown.purchase_text = ""
 	dropdown.sb = strings.builder_make()
 	dropdown.can_buy = false
 }
@@ -45,13 +48,12 @@ update_production :: proc(production: ^Production, fs: ^Frame_State) {
 	}
 
 	if production.show &&
-	   game.money >= game.ind_arr[production.ind_to_buy.type].cost {
+	   game.money >= game.ind_arr[production.ind_to_buy].cost {
 		production.can_buy = true
 		fmt.println(game.ind_arr[production.ind_to_buy.type].cost)
 	} else {
 		production.can_buy = false
 	}
-	
 }
 
 draw_bakery_production :: proc() {
@@ -262,7 +264,10 @@ show_purchase_production :: proc(tile_id: int, ind: ^Industry) {
 			&game.purchase_dropdown.sb,
 			"       Purchase\n        the Mill\n       for $",
 		)
-		strings.write_int(&game.purchase_dropdown.sb, cast(int)game.ind_arr[Industry_Type.MillForSale].cost)
+		strings.write_int(
+			&game.purchase_dropdown.sb,
+			cast(int)game.ind_arr[Industry_Type.MillForSale].cost,
+		)
 		strings.write_string(&game.purchase_dropdown.sb, "?")
 		game.purchase_dropdown.purchase_text = strings.to_cstring(
 			&game.purchase_dropdown.sb,
@@ -273,7 +278,10 @@ show_purchase_production :: proc(tile_id: int, ind: ^Industry) {
 			&game.purchase_dropdown.sb,
 			"       Purchase\n      the Bakery\n       for $",
 		)
-		strings.write_int(&game.purchase_dropdown.sb, cast(int)game.ind_arr[Industry_Type.BakeryForSale].cost)
+		strings.write_int(
+			&game.purchase_dropdown.sb,
+			cast(int)game.ind_arr[Industry_Type.BakeryForSale].cost,
+		)
 		strings.write_string(&game.purchase_dropdown.sb, "?")
 		game.purchase_dropdown.purchase_text = strings.to_cstring(
 			&game.purchase_dropdown.sb,

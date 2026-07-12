@@ -98,7 +98,7 @@ handle_input :: proc(fs: ^Frame_State) {
 					if fs.production.id == 2 {
 						change_industry(
 							fs.production.tile_id,
-							fs.production.ind_to_buy.type,
+							fs.production.ind_to_buy,
 						)
 					} else {
 						toggle_industry(fs.production_button.type)
